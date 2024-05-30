@@ -1,0 +1,40 @@
+.ac {
+  position: relative;
+  display: inline-block;
+}
+.ac-items {
+  position: absolute;
+  border: 1px solid #112440;
+  overflow-x: clip;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  border-bottom: none;
+  z-index: 99;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+.ac-items li {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #1c3252;
+  border-bottom: 1px solid #112440;
+  list-style-type: none;
+}
+.ac-items li:hover {
+  background-color: #284371;
+}
+.ac-items li div {
+  position: relative;
+  align-content: center;
+}
+.ac-active {
+  background-color: DodgerBlue !important;
+  color: #ffffff;
+}
+.text-div {
+  float: left;
+}
+.number-div {
+  float: right;
+}
