@@ -1,17 +1,12 @@
 const tagAmount = 25;
 
-let forcedChromeMode = false, ac_list;
-if (typeof browser === "undefined") {
-    var browser = chrome;
-    forcedChromeMode = true;
-}
+let ac_list;
 
 (async () => {
 
     async function autocomplete(input) {
         let currentFocus = -1;
-        const chromeMode = forcedChromeMode || await manualChromeMode();
-        let tags, pos = 0, q, endReached = false, first = true, worker;
+        let endReached = false, worker;
 
         function addToInput(tag, length) {
             if (input.value === "") {
@@ -67,56 +62,11 @@ if (typeof browser === "undefined") {
             }
         }
 
-        function inNameOrAlias(tuple, query) {
-            let alias = "";
-            let index = -1;
-            if (query.length <= tuple[0].length) index = tuple[0].indexOf(query);
-            if (index === -1) {
-                for (let a of tuple[1]) {
-                    if (query.length <= a.length) {
-                        index = a.indexOf(query);
-                        if (index !== -1) {
-                            alias = a;
-                            break;
-                        }
-                    }
-                }
-            }
-            return [index, alias];
-        }
-
-        async function parseCSV(csvString) {
-            const rows = csvString.split('\n');
-            const tuples = [];
-
-            rows.forEach(row => {
-                const values = row.split(',');
-
-                if (values.length >= 2) {
-                    let name = values[0].trim().toLowerCase();
-                    let aliases = [];
-
-                    for (let i = 2; i < values.length; i++) {
-                        if (values[i] === "") break;
-                        aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
-                    }
-
-                    tuples.push([name, aliases, values[1]]);
-                }
-            })
-
-            return tuples;
-        }
-
         async function setUp() {
-            if (chromeMode) {
-                if (!tags) tags = await parseCSV(await getStoredData());
-            } else {
-                if (!worker) {
-                    worker = new Worker(browser.runtime.getURL("worker.js"));
-                    worker.postMessage([await getStoredData(), tagAmount]);
-                    worker.onmessage = displayAutocompleteResults;
-                }
+            if (!worker) {
+                worker = new Worker(browser.runtime.getURL("worker.js"));
+                worker.postMessage([await getStoredData(), tagAmount]);
+                worker.onmessage = displayAutocompleteResults;
             }
         }
 
@@ -132,13 +82,13 @@ if (typeof browser === "undefined") {
                     if (ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight) getResults(query);
                 });
             }
-            let ac_item;
-            e.data[1].forEach(i => ac_item = addItemToAutocomplete(query, i));
-            if (ac_list.children.length > 0) {
-                ac_list.firstElementChild.classList.add("ac-active");
-                ac_list.style.maxHeight = `${6 * ac_list.firstElementChild.offsetHeight}px`;
+            e.data[1].forEach(i => addItemToAutocomplete(query, i));
+            if (e.data[2]) {
+                if (ac_list.children.length > 0) {
+                    ac_list.firstElementChild.classList.add("ac-active");
+                    ac_list.style.maxHeight = `${6 * ac_list.firstElementChild.offsetHeight}px`;
+                } else closeList();
             }
-            else closeList();
         }
 
         function addItemToAutocomplete(query, [index, alias, name, count]) {
@@ -146,6 +96,7 @@ if (typeof browser === "undefined") {
             ac_item.addEventListener("click", (e) => {
                 addToInput(getName(e.target), query.length);
                 closeList();
+                input.focus();
             });
             ac_list.appendChild(ac_item);
             return ac_item;
@@ -168,29 +119,7 @@ if (typeof browser === "undefined") {
         });
 
         function getResults(query) {
-            if (chromeMode) {
-                const result = [];
-                if (q && q !== query) {
-                    first = true;
-                    pos = 0;
-                }
-                q = query;
-                if (tags.length > 0) {
-                    for (let i = pos; i < tags.length; i++) {
-                        let [index, alias] = inNameOrAlias(tags[i], query);
-                        if (index >= 0) {
-                            result.push([index, alias, tags[i][0], tags[i][2]]);
-                        }
-                        pos = i + 1;
-                        if (result.length >= tagAmount) break;
-                    }
-                }
-                displayAutocompleteResults({data: [query, result, first, pos >= tags.length]});
-                first = false;
-
-            } else if (worker) {
-                worker.postMessage([query])
-            }
+            if (worker) worker.postMessage([query]);
         }
 
         input.addEventListener("keydown", (e) => {
@@ -242,13 +171,6 @@ if (typeof browser === "undefined") {
         let data = await browser.storage.local.get();
         data = data["derpibooru_csv"];
         if (!data) data = "";
-        return data;
-    }
-
-    async function manualChromeMode() {
-        let data = await browser.storage.local.get(["chrome_mode"]);
-        data = data["chrome_mode"];
-        if (!data) return false;
         return data;
     }
 
