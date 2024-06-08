@@ -1,6 +1,5 @@
 .ac {
   position: relative;
-  display: inline-block;
 }
 .ac-items {
   position: absolute;
@@ -13,6 +12,7 @@
   top: 100%;
   left: 0;
   right: 0;
+  max-height: 216px;
 }
 .ac-items li {
   padding: 10px;
