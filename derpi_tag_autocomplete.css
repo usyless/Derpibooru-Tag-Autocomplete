@@ -1,7 +1,7 @@
 .ac {
   position: relative;
 }
-.ac-items {
+.ac-list {
   position: absolute;
   border: 1px solid #112440;
   overflow-x: clip;
@@ -14,17 +14,17 @@
   right: 0;
   max-height: 216px;
 }
-.ac-items li {
+.ac-list li {
   padding: 10px;
   cursor: pointer;
   background-color: #1c3252;
   border-bottom: 1px solid #112440;
   list-style-type: none;
 }
-.ac-items li:hover {
+.ac-list li:hover {
   background-color: #284371;
 }
-.ac-items li div {
+.ac-list li div {
   position: relative;
   align-content: center;
 }
