@@ -2,7 +2,7 @@
 
 (() => {
     function autocomplete(input, ac_list) {
-        let focus = 0, recievedPage = true, lastQuery = '', page = 1, timer, queryID = 0;
+        let focus = 0, recievedPage = true, lastQuery = '', page = 1, timer, controller = new AbortController();
         const createListItem = listItemTemplate(),
             keyMappings = {
                 40: () => changeActive(true),
@@ -45,13 +45,13 @@
             ac_list.appendChild(ac_item);
         }
 
-        function displayAutocompleteResults(id, data) {
-            if (data && id === queryID && data.length > 0) {
+        function displayAutocompleteResults(newQuery, data) {
+            if (newQuery) closeList();
+            if (data.length > 0) {
                 recievedPage = true;
-                if (page === 1) closeList();
                 for (const i of data) addItemToAutocomplete(i);
-                if (page === 1 && ac_list.firstElementChild) ac_list.firstElementChild.classList.add('ac-active');
-            } else if (id !== queryID) closeList();
+                if (newQuery) ac_list.firstElementChild.classList.add('ac-active');
+            }
         }
 
         async function getResults(newQuery) {
@@ -59,15 +59,20 @@
             if (newQuery) {
                 focus = 0;
                 page = 1;
-                ++queryID;
             } else ++page;
-            const id = {id: queryID};
-            displayAutocompleteResults(id.id, (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${lastQuery}*&page=${page}`, {method: "GET"})).json())['tags']);
+            try {
+                displayAutocompleteResults(newQuery, (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${lastQuery}*&page=${page}`, {
+                    method: "GET",
+                    signal: controller.signal
+                })).json())['tags']);
+            } catch {}
         }
 
         input.addEventListener('input', () => {
             clearTimeout(timer);
             const query = cleanQuery(input.value);
+            controller.abort();
+            controller = new AbortController();
             if (query !== lastQuery) {
                 lastQuery = query;
                 if (query.length <= 0) closeList();
@@ -107,8 +112,8 @@
                 ac_list.addEventListener('scroll', () => {
                     if (ac_list.scrollTop < lastScrollTop) return;
                     lastScrollTop = ac_list.scrollTop <= 0 ? 0 : ac_list.scrollTop;
-                    if (recievedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults();
-                });
+                    if (recievedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults(false);
+                }, {signal: controller.signal});
             }
         }
 
@@ -128,7 +133,7 @@
                     break;
                 }
             }
-            return query.trim().toLowerCase();
+            return query.trimStart().toLowerCase();
         }
     }
 
