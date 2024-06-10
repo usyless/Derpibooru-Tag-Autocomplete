@@ -1,7 +1,7 @@
 # Derpibooru Tag Autocomplete
-Ttag autocompletion for derpibooru.org, using the available API
+Tag autocompletion for derpibooru.org, using the available API
 
-## Usage
+## Install
 ### Firefox Desktop/Mobile (or Fennec)
 - Install extension through the mozilla addons page linked below
 ### Chrome or other chromium based browsers
