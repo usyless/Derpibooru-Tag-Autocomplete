@@ -2,7 +2,7 @@
 
 (() => {
     function autocomplete(input, ac_list) {
-        let focus = 0, recievedPage = true, lastQuery = '', page = 1, timer;
+        let focus = 0, recievedPage = true, lastQuery = '', page = 1, timer, queryID = 0;
         const createListItem = listItemTemplate(),
             keyMappings = {
                 40: () => changeActive(true),
@@ -45,13 +45,13 @@
             ac_list.appendChild(ac_item);
         }
 
-        function displayAutocompleteResults(q, data) {
-            if (data && q === lastQuery && data.length > 0) {
+        function displayAutocompleteResults(id, data) {
+            if (data && id === queryID && data.length > 0) {
                 recievedPage = true;
                 if (page === 1) closeList();
                 for (const i of data) addItemToAutocomplete(i);
                 if (page === 1 && ac_list.firstElementChild) ac_list.firstElementChild.classList.add('ac-active');
-            }
+            } else if (id !== queryID) closeList();
         }
 
         async function getResults(newQuery) {
@@ -59,9 +59,10 @@
             if (newQuery) {
                 focus = 0;
                 page = 1;
+                ++queryID;
             } else ++page;
-            const currentSearch = {q: lastQuery};
-            displayAutocompleteResults(currentSearch.q, (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${currentSearch.q}*&page=${page}`, {method: "GET"})).json())['tags']);
+            const id = {id: queryID};
+            displayAutocompleteResults(id.id, (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${lastQuery}*&page=${page}`, {method: "GET"})).json())['tags']);
         }
 
         input.addEventListener('input', () => {
@@ -73,6 +74,8 @@
                 else timer = setTimeout(() => getResults(true), 250);
             }
         });
+
+        input.addEventListener('click', (e) => e.stopPropagation());
 
         function changeActive(down) {
             const oldItem = document.querySelector('[class*="ac-active"]');
@@ -104,7 +107,7 @@
                 ac_list.addEventListener('scroll', () => {
                     if (ac_list.scrollTop < lastScrollTop) return;
                     lastScrollTop = ac_list.scrollTop <= 0 ? 0 : ac_list.scrollTop;
-                    if (recievedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 648) getResults();
+                    if (recievedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults();
                 });
             }
         }
@@ -112,18 +115,20 @@
         document.addEventListener('click', closeList);
     }
 
-    function getCleanQuery() {
+    function getCleanQuery() { // add checking for escape character later, or double quotes, seems complex
         const searchOperators = [',', ' AND ', ' OR ', ' \\|\\| ', ' && '],
-            regex = new RegExp(searchOperators.join('|'), 'g');
+            regex = new RegExp(searchOperators.join('|'), 'g'), notOperators = ['-', '!', 'NOT '];
 
         return (query) => {
-            query = query.trim().split(regex);
-            query = query[query.length - 1].trim();
+            query = query.trimStart().split(regex);
+            query = query[query.length - 1].trimStart();
             if (query.length > 0) {
-                if (query[0] === '-') query = query.substring(1);
-                else if (query.substring(0, 4) === 'NOT ') query = query.substring(4);
+                for (const op of notOperators) if (query.substring(0, op.length) === op) {
+                    query = query.substring(op.length);
+                    break;
+                }
             }
-            return query.toLowerCase();
+            return query.trim().toLowerCase();
         }
     }
 
