@@ -1,14 +1,11 @@
 {
   "manifest_version": 2,
   "name": "Derpibooru Tag Autocomplete",
-  "version": "1.0.1",
+  "version": "1.1",
   "description": "Tag autocompletion for derpibooru",
   "icons": {
     "96": "icons/tag-autocomplete-96.png"
   },
-  "permissions": [
-    "storage"
-  ],
   "content_scripts": [
     {
       "matches": [
@@ -22,16 +19,6 @@
       ],
       "run_at": "document_idle"
     }
-  ],
-  "browser_action": {
-    "default_popup": "popup/popup.html"
-  },
-  "options_ui": {
-    "page": "settings/settings.html",
-    "open_in_tab": true
-  },
-  "web_accessible_resources": [
-    "worker.js"
   ],
   "background": {
     "scripts": ["background.js"],
