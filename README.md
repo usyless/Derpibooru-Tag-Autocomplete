@@ -1,5 +1,5 @@
 # Derpibooru Tag Autocomplete
-Add tag autocompletion for derpibooru
+Ttag autocompletion for derpibooru.org, using the available API
 
 ## Usage
 - Install extension, through the mozilla addons page for firefox
