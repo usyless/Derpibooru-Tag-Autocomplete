@@ -1,5 +1,9 @@
 'use strict';
 
+if (typeof browser === "undefined") {
+    var browser = chrome;
+}
+
 (() => {
     function autocomplete(input, ac_list) {
         let focus = 0, recievedPage = true, lastQuery = '', page = 1;
@@ -77,7 +81,7 @@
                 page = 1;
             }
             else ++page;
-            displayAutocompleteResults(await browser.runtime.sendMessage({type: 'tags', query: lastQuery, page: page}))
+            displayAutocompleteResults((await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${lastQuery}*${page === 1 ? "" : `&page=${page}`}`, {method: "GET"})).json())['tags']);
         }
 
         input.addEventListener('keydown', (e) => {
