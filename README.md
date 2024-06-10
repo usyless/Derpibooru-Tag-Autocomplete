@@ -1,5 +1,5 @@
 # Derpibooru Tag Autocomplete
-Tag autocompletion for derpibooru.org, using the available API
+Tag autocompletion for derpibooru.org, with infinite scroll, using the available API
 
 ## Install
 ### Firefox Desktop/Mobile (or Fennec)
