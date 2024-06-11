@@ -7,7 +7,7 @@ Tag autocompletion for derpibooru.org, with infinite scroll, using the available
 ### Chrome or other chromium based browsers
 - Download chromium zip from the [latest release](https://github.com/usyless/Derpibooru-Tag-Autocomplete/releases/latest)
 - Unzip the file into a known directory
-- Visit [chrome://extensions](chrome://extensions) in your browser
+- Visit chrome://extensions in your browser
 - Enable developer mode (There should be a toggle present on the page)
 - Press "Load Unpacked" or equivalent, select the unzipped folder
 
