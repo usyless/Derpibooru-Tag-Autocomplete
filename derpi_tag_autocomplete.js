@@ -2,16 +2,11 @@
 
 (() => {
     function autocomplete(input, ac_list) {
-        let focus = 0, recievedPage = true, lastQuery = '', page = 1, timer, controller = new AbortController();
-        const createListItem = listItemTemplate(),
-            keyMappings = {
-                40: () => changeActive(true),
-                38: () => changeActive(false),
-                9: () => document.querySelector('[class*="ac-active"]').click()
-            };
+        let recievedPage = true, currentQuery = '', page = 1, controller = new AbortController(), timer;
+        const createListItem = listItemTemplate();
 
         function addToInput(tag) {
-            input.value = input.value.substring(0, input.value.length - lastQuery.length) + tag;
+            input.value = currentQuery.substring(0, currentQuery.length - cleanQuery(currentQuery).length) + tag;
         }
 
         function listItemTemplate() {
@@ -22,86 +17,95 @@
             outer_div.append(text_div, number_div);
             list.appendChild(outer_div);
 
-            return (aliased_tag, name, count) => {
+            return (query, aliased_tag, name, count) => {
                 number_div.innerText = simplifyNumber(count);
-                const newList = list.cloneNode(true), index = name.indexOf(lastQuery),
+                const newList = list.cloneNode(true), index = name.indexOf(query),
                     new_text_div = newList.firstChild.firstChild,
-                    strong = document.createElement('strong');
-                strong.innerText = name.substring(index, index + lastQuery.length);
-                new_text_div.append(document.createTextNode(name.substring(0, index)), strong, document.createTextNode(name.substring(index + lastQuery.length)));
+                    strong = document.createElement('strong'), endIndex = index + query.length;
+                if (index === -1) new_text_div.appendChild(document.createTextNode(name));
+                else {
+                    strong.innerText = name.substring(index, endIndex);
+                    new_text_div.append(document.createTextNode(name.substring(0, index)), strong, document.createTextNode(name.substring(endIndex)));
+                }
                 if (aliased_tag) new_text_div.appendChild(document.createTextNode(` → ${aliased_tag}`));
                 return newList;
             }
         }
 
-        function addItemToAutocomplete(data) {
-            const ac_item = createListItem(data['aliased_tag'], data['name'], data['images']);
+        function addItemToAutocomplete(data, query) {
+            const ac_item = createListItem(query, data['aliased_tag'], data['name'], data['images']);
             ac_item.addEventListener('click', (e) => {
                 e.stopPropagation();
                 addToInput(data['name']);
-                closeList();
+                input.dispatchEvent(new Event('input'));
                 input.focus();
+                clearTimeout(timer);
+                closeList();
             });
             ac_list.appendChild(ac_item);
         }
 
-        function displayAutocompleteResults(newQuery, data) {
+        function displayAutocompleteResults(newQuery, query, data) {
             if (newQuery) closeList();
-            if (data.length > 0) {
+            if (data && data.length > 0) {
                 recievedPage = true;
-                for (const i of data) addItemToAutocomplete(i);
+                for (const i of data) addItemToAutocomplete(i, query);
                 if (newQuery) ac_list.firstElementChild.classList.add('ac-active');
             }
         }
 
+        let cleanedQuery = '';
         async function getResults(newQuery) {
             recievedPage = false;
             if (newQuery) {
-                focus = 0;
+                cleanedQuery = cleanQuery(currentQuery);
                 page = 1;
             } else ++page;
-            try {
-                displayAutocompleteResults(newQuery, (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${lastQuery}*&page=${page}`, {
-                    method: "GET",
-                    signal: controller.signal
-                })).json())['tags']);
-            } catch {}
+            cleanedQuery.length <= 0
+                ? closeList()
+                : displayAutocompleteResults(newQuery, cleanedQuery, (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${cleanedQuery}*&page=${page}`,
+                    {method: "GET", signal: controller.signal})).json())['tags']);
         }
 
         input.addEventListener('input', () => {
             clearTimeout(timer);
-            const query = cleanQuery(input.value);
             controller.abort();
             controller = new AbortController();
-            if (query !== lastQuery) {
-                lastQuery = query;
-                if (query.length <= 0) closeList();
-                else timer = setTimeout(() => getResults(true), 250);
-            }
+            currentQuery = input.value;
+            if (currentQuery.length <= 0) closeList();
+            timer = setTimeout(() => getResults(true), 250);
         });
 
-        input.addEventListener('click', (e) => e.stopPropagation());
+        input.addEventListener('click', (e) => e.stopPropagation()); // Prevent closing list
 
-        function changeActive(down) {
-            const oldItem = document.querySelector('[class*="ac-active"]');
-            oldItem.classList.remove('ac-active');
+        { // Mapping Keys to their functions
+            const keyMappings = {
+                40: () => changeActive(true), // up
+                38: () => changeActive(false), // down
+                9: () => document.querySelector('[class*="ac-active"]').click() // tab
+            };
 
-            let newItem = down ? oldItem.nextElementSibling : oldItem.previousElementSibling;
-            if (!newItem) {
-                if (!recievedPage && down) newItem = ac_list.firstElementChild;
-                else if (!down) newItem = ac_list.lastElementChild;
+            input.addEventListener('keydown', (e) => {
+                const action = keyMappings[e.keyCode];
+                if (action) {
+                    e.preventDefault();
+                    action();
+                }
+            });
+
+            function changeActive(down) {
+                const oldItem = document.querySelector('[class*="ac-active"]');
+                oldItem.classList.remove('ac-active');
+
+                let newItem = down ? oldItem.nextElementSibling : oldItem.previousElementSibling;
+                if (!newItem) {
+                    if (!recievedPage && down) newItem = ac_list.firstElementChild;
+                    else if (!down) newItem = ac_list.lastElementChild;
+                }
+                newItem.classList.add('ac-active');
+                newItem.scrollIntoView({block: 'center'});
             }
-            newItem.classList.add('ac-active');
-            newItem.scrollIntoView({block: 'center'});
         }
-
-        input.addEventListener('keydown', (e) => {
-            const action = keyMappings[e.keyCode];
-            if (action) {
-                e.preventDefault();
-                action();
-            }
-        });
 
         function closeList() {
             const newList = ac_list.cloneNode();
@@ -120,24 +124,25 @@
         document.addEventListener('click', closeList);
     }
 
-    function getCleanQuery() { // add checking for escape character later, or double quotes, seems complex
+    let cleanQuery;
+    {
         const searchOperators = [',', ' AND ', ' OR ', ' \\|\\| ', ' && '],
-            regex = new RegExp(searchOperators.join('|'), 'g'), notOperators = ['-', '!', 'NOT '];
+            regex = new RegExp(searchOperators.join('|'), 'g'), ignored = ['-', '!', 'NOT ', '('];
 
-        return (query) => {
+        function cleanQueryFunc(query) {
             query = query.trimStart().split(regex);
             query = query[query.length - 1].trimStart();
             if (query.length > 0) {
-                for (const op of notOperators) if (query.substring(0, op.length) === op) {
+                for (const op of ignored) if (query.substring(0, op.length) === op) {
                     query = query.substring(op.length);
                     break;
                 }
             }
             return query.trimStart().toLowerCase();
         }
-    }
 
-    const cleanQuery = getCleanQuery();
+        cleanQuery = cleanQueryFunc;
+    }
 
     function simplifyNumber(number) {
         if (number < 1000) return number.toString();
