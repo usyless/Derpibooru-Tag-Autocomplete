@@ -5,8 +5,10 @@ Tag autocompletion for derpibooru.org, with infinite scroll, using the available
 ### Firefox Desktop/Mobile (or Fennec)
 - Install extension through the [Mozilla addons page ](https://addons.mozilla.org/en-GB/firefox/addon/derpibooru-tag-autocomplete/)
 ### Chrome or other chromium based browsers
-- Download chromium zip from latest release, unzip into a known directory
-- Go to chrome://extensions in your browser, enable developer mode
+- Download chromium zip from the [latest release](https://github.com/usyless/Derpibooru-Tag-Autocomplete/releases/latest)
+- Unzip the file into a known directory
+- Visit chrome://extensions in your browser
+- Enable developer mode (There should be a toggle present on the page)
 - Press "Load Unpacked" or equivalent, select the unzipped folder
 
 ## Example Images
