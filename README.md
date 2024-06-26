@@ -11,7 +11,7 @@ Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using 
 - Enable developer mode (There should be a toggle present on the page)
 - Press "Load Unpacked" or equivalent, select the unzipped folder
 
-## Example Images
+## Extension Images
 ### Desktop
 ![Derpibooru Tag Autocomplete a desktop](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/desktop.png?raw=true)
 ### Mobile
