@@ -150,18 +150,24 @@
         else return `${(number / 1000000).toFixed(1)}M`;
     }
 
-    const input = document.getElementById('q'), form = input.parentElement, div = document.createElement('div'),
-        ac_list = document.createElement('div');
-    if (form) {
-        div.classList.add('ac', ...form.classList);
-        form.before(div);
-        div.appendChild(form);
+    const inputs = [document.getElementById('q'), document.getElementById('searchform_q')];
+    for (const input of inputs) {
+        console.log(input);
+        if (input != null) {
+            const form = input.parentElement, div = document.createElement('div'),
+                ac_list = document.createElement('div');
+            if (form) {
+                div.classList.add('ac', ...form.classList);
+                form.before(div);
+                div.appendChild(form);
 
-        input.autocomplete = 'off';
+                input.autocomplete = 'off';
 
-        ac_list.classList.add('ac-list');
-        input.parentNode.parentNode.appendChild(ac_list);
+                ac_list.classList.add('ac-list');
+                input.parentNode.parentNode.appendChild(ac_list);
 
-        autocomplete(input, ac_list);
-    } else console.warn('No search box found!');
+                autocomplete(input, ac_list);
+            }
+        }
+    }
 })();
