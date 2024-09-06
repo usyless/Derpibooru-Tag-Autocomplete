@@ -13,6 +13,7 @@
   left: 0;
   right: 0;
   max-height: 216px;
+  color: #e0e0e0;
 }
 .ac-list li {
   padding: 10px;
@@ -30,11 +31,13 @@
 }
 .ac-active {
   background-color: DodgerBlue !important;
-  color: #ffffff;
+  color: #ffffff !important;
 }
 .text-div {
   float: left;
+  color: inherit;
 }
 .number-div {
   float: right;
+  color: inherit;
 }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Derpibooru Tag Autocomplete",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Tag autocompletion for Derpibooru.org",
   "icons": {
     "96": "icons/tag-autocomplete-96.png"

@@ -1,6 +1,13 @@
 # Derpibooru Tag Autocomplete
 Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using the available API
 
+## Use Instructions
+- No setup required, just install the extension.
+- Navigate the autofill column with the arrows keys, or mouse scroll.
+- Press `tab` to fill the currently selected item, by default this will fill the first item.
+- Currently supported search operators (will not interfere with search):
+  - `,`, `AND`, `&&`, `OR`, `||`, `-`, `!`, `NOT`, `()`
+
 ## Install
 ### Firefox Desktop/Mobile (or Fennec)
 - Install extension through the [Mozilla addons page ](https://addons.mozilla.org/en-GB/firefox/addon/derpibooru-tag-autocomplete/)
