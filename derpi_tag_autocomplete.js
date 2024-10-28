@@ -168,7 +168,7 @@
     let fetchfunc, timeout = 250, worker;
     await updateFetchFunc();
     async function updateFetchFunc() {
-        worker?.terminate();
+        worker?.terminate?.();
         if (Settings.preferences.local_autocomplete_enabled) {
             timeout = 0;
             worker = new Worker(browser.runtime.getURL("worker.js"));
