@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Derpibooru Tag Autocomplete",
-  "version": "1.1.8",
+  "version": "1.2",
   "description": "Tag autocompletion for Derpibooru.org",
   "icons": {
     "96": "icons/tag-autocomplete-96.png"
@@ -34,5 +34,11 @@
     "default_icon": "icons/tag-autocomplete-96.png",
     "default_title": "Settings",
     "default_popup": "popup/popup.html"
-  }
+  },
+   "web_accessible_resources": [
+     {
+       "resources": ["worker.js"],
+       "matches": ["https://derpibooru.org/*"]
+     }
+   ]
 }

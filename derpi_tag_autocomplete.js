@@ -60,7 +60,7 @@
             controller = new AbortController();
             currentQuery = cleanQuery(input.value, input.selectionStart);
             if (currentQuery.current.length <= 0) closeList();
-            else timer = setTimeout(() => getResults(true), 250);
+            else timer = setTimeout(() => getResults(true), timeout);
         });
 
         input.addEventListener('click', (e) => e.stopPropagation()); // Prevent closing list
@@ -165,18 +165,25 @@
         else return `${(number / 1000000).toFixed(1)}M`;
     }
 
-    let fetchfunc;
-    updateFetchFunc();
-    function updateFetchFunc() {
-        fetchfunc = Settings.preferences.match_start
-            ? async (query, page, controller) => {
-                return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${query}*&page=${page}`,
+    let fetchfunc, timeout = 250, worker;
+    await updateFetchFunc();
+    async function updateFetchFunc() {
+        worker?.terminate();
+        if (Settings.preferences.local_autocomplete_enabled) {
+            timeout = 0;
+            worker = new Worker(browser.runtime.getURL("worker.js"));
+            worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
+            fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
+                worker.onmessage = (d) => resolve(d.data);
+                worker.postMessage({type: 'query', query: query, newQuery: page === 1});
+            });
+        } else {
+            timeout = 250;
+            fetchfunc = async (query, page, controller) => {
+                return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${query}*&page=${page}`,
                             {method: "GET", signal: controller.signal})).json())['tags']
             }
-            : async (query, page, controller) => {
-                return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=*${query}*&page=${page}`,
-                            {method: "GET", signal: controller.signal})).json())['tags']
-            }
+        }
     }
 
     const inputs = [document.getElementById('q'), document.getElementById('searchform_q')];
@@ -203,7 +210,7 @@
         if (namespace === 'local') for (const key in changes) {
             if (Settings.preferences.hasOwnProperty(key)) {
                 await Settings.loadSettings();
-                updateFetchFunc();
+                await updateFetchFunc();
                 return;
             }
         }
@@ -213,11 +220,17 @@
         class Settings {
             preferences = {
                 match_start: false,
+                local_autocomplete_enabled: false
             }
 
             async loadSettings() {
-                const data = await chrome.storage.local.get(), settings = ['preferences'];
+                const settings = ['preferences'];
+                const data = await chrome.storage.local.get(...settings.map(s => Object.keys(this[s])));
                 for (const setting of settings) for (const s in this[setting]) this[setting][s] = data[s] ?? this[setting][s];
+            }
+
+            async getTags() {
+                return (await chrome.storage.local.get(['local_autocomplete_tags']))?.local_autocomplete_tags ?? {};
             }
         }
 

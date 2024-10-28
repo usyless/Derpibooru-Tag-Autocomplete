@@ -12,35 +12,68 @@ const options = {
             default: false
         },
     ],
-    // Local autocomplete coming back eventually
-    // "Local Autocomplete (Only for Firefox)": [
-    //     {
-    //         name: "local_autocomplete_enabled",
-    //         description: "Enable local autocomplete rather than with the API (must provide a tag file below)",
-    //         default: false
-    //     },
-    //     {
-    //         name: "local_autocomplete_tags",
-    //         description: "Choose the file for local autocomplete with the button",
-    //         type: 'button',
-    //         button: 'Pick File',
-    //         onclick: () => {
-    //
-    //         },
-    //         init: () => {
-    //
-    //         }
-    //     },
-    //     {
-    //         name: "local_autocomplete_current_file_name",
-    //         description: "Currently loaded tags file name: ",
-    //         type: 'info',
-    //         default: 'No file currently loaded',
-    //         init: () => {
-    //
-    //         }
-    //     }
-    // ]
+    "Local Autocomplete (Only for Firefox)": [
+        {
+            name: "local_autocomplete_enabled",
+            description: "Enable local autocomplete rather than with the API (must provide a tag file below)",
+            default: false
+        },
+        {
+            name: "local_autocomplete_tags",
+            description: 'Choose the file for local autocomplete (must be a csv, formatted as {tag name},{tag count},"{tag aliases separated by commas inside quotes}")',
+            type: 'button',
+            button: 'Pick File',
+            onclick: () => {
+                document.getElementById('local_autocomplete_tags_input').click();
+            },
+            init: () => {
+                const i = document.createElement('input');
+                i.type = 'file';
+                i.id = 'local_autocomplete_tags_input';
+                i.hidden = true;
+                i.accept = '.csv';
+                i.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        let reader = new FileReader();
+                        reader.addEventListener("load", async () => {
+                            const data = {};
+                            data["local_autocomplete_tags"] = reader.result;
+                            data["local_autocomplete_current_file_name"] = file.name;
+                            try {
+                                await setStorage(data);
+                                alert("Tags saved");
+                            } catch {
+                                alert("File size too big");
+                            }
+                            document.getElementById("local_autocomplete_current_file_name").textContent = file.name;
+                        })
+                        reader.readAsText(file);
+                });
+                document.body.appendChild(i);
+            }
+        },
+        {
+            name: "local_autocomplete_current_file_name",
+            description: "Currently loaded tags file name: ",
+            type: 'info',
+            default: 'No file currently loaded'
+        }
+    ],
+    "Additional": [
+        {
+            name: "reset_all_settings",
+            description: "Reset this extensions settings to their defaults",
+            type: 'button',
+            button: 'RESET SETTINGS',
+            onclick: () => {
+                if (confirm("Are you sure you want to RESET this extensions settings?")) {
+                    clearStorage();
+                    window.location.reload();
+                }
+            }
+        }
+    ]
 }
 const typeMap = {
     button: create_button,
@@ -101,14 +134,8 @@ function toggle_value(e) {
     setStorage(data);
 }
 
-function update_value(e) {
-    const data = {};
-    data[e.target.id] = e.target.value;
-    setStorage(data);
-}
-
-function setStorage(data) {
-    chrome.storage.local.set(data);
+async function setStorage(data) {
+    await chrome.storage.local.set(data);
 }
 
 function clearStorage() {
