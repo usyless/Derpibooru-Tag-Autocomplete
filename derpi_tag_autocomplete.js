@@ -56,11 +56,11 @@
         }
 
         input.addEventListener('focus', async () => {
-            if (!worker) {
+            if (Settings.preferences.local_autocomplete_enabled && !worker) {
                 worker = new Worker(chrome.runtime.getURL("worker.js"));
                 worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
             }
-        }, {once: true});
+        });
 
         input.addEventListener('input', () => {
             clearTimeout(timer);
