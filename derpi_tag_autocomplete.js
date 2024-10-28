@@ -60,7 +60,7 @@
             controller = new AbortController();
             currentQuery = cleanQuery(input.value, input.selectionStart);
             if (currentQuery.current.length <= 0) closeList();
-            timer = setTimeout(() => getResults(true), 250);
+            else timer = setTimeout(() => getResults(true), 250);
         });
 
         input.addEventListener('click', (e) => e.stopPropagation()); // Prevent closing list
