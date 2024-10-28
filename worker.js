@@ -13,8 +13,14 @@ const typeMap = {
             const query = data.query, query_length = query.length, result = [];
             if (data.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {
-                const r = inNameOrAlias(tags[pos], query, query_length);
-                r && result.push(r);
+                const tuple = tags[pos];
+                if (query_length <= tuple[0].length && tuple[0][comparator](query)) {
+                    result.push({aliased_tag: null, name: tuple[0], images: tuple[2]});
+                }
+                else for (const a of tuple[1]) if (query_length <= a.length && a[comparator](query)) {
+                    result.push({aliased_tag: tuple[0], name: a, images: tuple[2]});
+                    break;
+                }
                 if (result.length >= 25) break;
             }
             postMessage(result);
@@ -23,25 +29,6 @@ const typeMap = {
 }
 
 onmessage = (e) => typeMap[e.data.type]?.(e.data);
-
-function inNameOrAlias(tuple, query, length) {
-    if (length <= tuple[0].length && tuple[0][comparator](query)) {
-        return {
-            aliased_tag: null,
-            name: tuple[0],
-            images: tuple[2]
-        }
-    }
-    for (const a of tuple[1]) {
-        if (length <= a.length && a[comparator](query)) {
-            return {
-                aliased_tag: tuple[0],
-                name: a,
-                images: tuple[2]
-            }
-        }
-    }
-}
 
 function parseCSV(csvString) {
     const rows = csvString.split('\n');
