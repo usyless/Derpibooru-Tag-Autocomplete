@@ -2,6 +2,7 @@
 
 (async () => {
     const Settings = await getSettings();
+    let fetchfunc, timeout = 250, worker, cleanQuery;
 
     function autocomplete(input, ac_list) {
         let recievedPage = true, currentQuery = '', page = 1, controller = new AbortController(), timer;
@@ -53,6 +54,13 @@
                 ? closeList()
                 : displayAutocompleteResults(newQuery, q, await fetchfunc(q.current, page, controller));
         }
+
+        input.addEventListener('focus', async () => {
+            if (!worker) {
+                worker = new Worker(chrome.runtime.getURL("worker.js"));
+                worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
+            }
+        }, {once: true});
 
         input.addEventListener('input', () => {
             clearTimeout(timer);
@@ -130,7 +138,6 @@
         document.addEventListener('click', closeList);
     }
 
-    let cleanQuery;
     {
         const searchOperators = [',', ' AND ', ' OR ', ' \\|\\| ', ' && '],
             regex = new RegExp(searchOperators.join('|'), 'g'), ignored = ['-', '!', 'NOT ', '('];
@@ -165,17 +172,17 @@
         else return `${(number / 1000000).toFixed(1)}M`;
     }
 
-    let fetchfunc, timeout = 250, worker;
     await updateFetchFunc();
     async function updateFetchFunc() {
         worker?.terminate?.();
+        worker = null;
         if (Settings.preferences.local_autocomplete_enabled) {
             timeout = 0;
-            worker = new Worker(chrome.runtime.getURL("worker.js"));
-            worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
             fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
-                worker.onmessage = (d) => resolve(d.data);
-                worker.postMessage({type: 'query', query: query, newQuery: page === 1});
+                if (worker) {
+                    worker.onmessage = (d) => resolve(d.data);
+                    worker.postMessage({type: 'query', query: query, newQuery: page === 1});
+                }
             });
         } else {
             timeout = 250;
@@ -208,11 +215,8 @@
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') for (const key in changes) {
-            if (Settings.preferences.hasOwnProperty(key)) {
-                await Settings.loadSettings();
-                await updateFetchFunc();
-                return;
-            }
+            await Settings.loadSettings();
+            await updateFetchFunc();
         }
     });
 
