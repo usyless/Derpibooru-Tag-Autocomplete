@@ -171,7 +171,7 @@
         worker?.terminate?.();
         if (Settings.preferences.local_autocomplete_enabled) {
             timeout = 0;
-            worker = new Worker(browser.runtime.getURL("worker.js"));
+            worker = new Worker(chrome.runtime.getURL("worker.js"));
             worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
             fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
                 worker.onmessage = (d) => resolve(d.data);
