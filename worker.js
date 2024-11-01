@@ -1,53 +1,53 @@
-'use strict';
+let typeMap;
 
-let tags, pos = -1, length, comparator = 'includes';
+(async () => {
+    'use strict';
+    let wasmResult, instance, exports, memory;
 
-const typeMap = {
-    data: (data) => {
-        tags = parseCSV(data.data);
-        length = tags.length;
-        comparator = data.match_start ? 'startsWith' : 'includes';
-    },
-    query: (data) => {
-        if (length > 0) {
-            const query = data.query, query_length = query.length, result = [];
-            if (data.newQuery) pos = -1;
-            for (++pos; pos < length; ++pos) {
-                const tuple = tags[pos];
-                if (query_length <= tuple[0].length && tuple[0][comparator](query)) {
-                    result.push({aliased_tag: null, name: tuple[0], images: tuple[2]});
-                }
-                else for (const a of tuple[1]) if (query_length <= a.length && a[comparator](query)) {
-                    result.push({aliased_tag: tuple[0], name: a, images: tuple[2]});
-                    break;
-                }
-                if (result.length >= 25) break;
-            }
-            postMessage(result);
-        }
-    }
-}
-
-onmessage = (e) => typeMap[e.data.type]?.(e.data);
-
-function parseCSV(csvString) {
-    const rows = csvString.split('\n');
-    const tuples = [];
-
-    for (const row of rows) {
-        const values = row.split(',');
-
-        if (values.length >= 2) {
-            const name = values[0].trim().toLowerCase(), aliases = [];
-
-            for (let i = 2; i < values.length; i++) {
-                if (values[i] === "") break;
-                aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
-            }
-
-            tuples.push([name, aliases, values[1]]);
+    const importObject = {
+        env: {
+            memory: new WebAssembly.Memory({initial: 1600, maximum: 1600})
         }
     }
 
-    return tuples;
-}
+    const passStringToWasm = (str) => { // must free after
+        const lengthBytes = (new TextEncoder()).encode(str);
+        const bufferPointer = exports.malloc(lengthBytes.length + 1);
+        memory.set(lengthBytes, bufferPointer);
+        memory[bufferPointer + lengthBytes.length] = 0;
+        return bufferPointer;
+    }
+
+     const readStringFromMemory = (ptr) => {
+         let str = '';
+         let byte = memory[ptr];
+         const originalPtr = ptr;
+         while (byte !== 0) {
+             str += String.fromCharCode(byte);
+             byte = memory[++ptr];
+         }
+         exports.delete_return_string(originalPtr);
+         return str;
+     }
+
+    typeMap = {
+        init: async (data) => {
+            wasmResult = await WebAssembly.instantiateStreaming(await fetch(data.url), importObject);
+            instance = wasmResult.instance;
+            exports = instance.exports;
+            exports._initialize(); // Emscripten required thing i think
+            memory = new Uint8Array(exports.memory.buffer);
+
+            const p = passStringToWasm(data.data);
+            exports.loadTags(p, data.match_start ? 1 : 0);
+            exports.free(p);
+        },
+        query: (data) => {
+            const p = passStringToWasm(data.query);
+            postMessage(JSON.parse(readStringFromMemory(exports.complete(p, data.newQuery ? 1 : 0))));
+            exports.free(p);
+        }
+    }
+})();
+
+onmessage = (e) => typeMap?.[e.data.type]?.(e.data);

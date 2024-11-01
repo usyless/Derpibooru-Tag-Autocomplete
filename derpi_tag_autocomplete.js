@@ -58,7 +58,7 @@
         input.addEventListener('focus', async () => {
             if (Settings.preferences.local_autocomplete_enabled && !worker) {
                 worker = new Worker(chrome.runtime.getURL("worker.js"));
-                worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
+                worker.postMessage({type: 'init', url: chrome.runtime.getURL("/standalone.wasm"), data: await Settings.getTags(), match_start: Settings.preferences.match_start});
             }
         });
 

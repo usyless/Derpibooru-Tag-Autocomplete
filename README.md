@@ -28,3 +28,7 @@ Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using 
 ![Derpibooru Tag Autocomplete a desktop](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/desktop.png?raw=true)
 ### Mobile
 ![Derpibooru Tag Autocomplete mobile](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/mobile.png?raw=true)
+
+### Compiling
+- Use emscripten
+- `emcc autocomplete.cpp -O3 -sEXPORTED_FUNCTIONS=_loadTags,_complete,_delete_return_string,_free,_malloc -sSTANDALONE_WASM -sINITIAL_HEAP=104857600 --no-entry -o standalone.wasm`
