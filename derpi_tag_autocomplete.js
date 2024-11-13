@@ -17,13 +17,13 @@
             list.appendChild(outer_div);
 
             return (query, aliased_tag, name, count) => {
-                number_div.innerText = simplifyNumber(count);
+                number_div.textContent = simplifyNumber(count);
                 const newList = list.cloneNode(true), index = name.indexOf(query),
                     new_text_div = newList.firstChild.firstChild,
                     strong = document.createElement('strong'), endIndex = index + query.length;
                 if (index === -1) new_text_div.appendChild(document.createTextNode(name));
                 else {
-                    strong.innerText = name.substring(index, endIndex);
+                    strong.textContent = name.substring(index, endIndex);
                     new_text_div.append(document.createTextNode(name.substring(0, index)), strong, document.createTextNode(name.substring(endIndex)));
                 }
                 if (aliased_tag) {
@@ -172,7 +172,8 @@
     }
 
     function simplifyNumber(number) {
-        if (number < 1000) return number.toString();
+        if (number < 0) return 'special';
+        else if (number < 1000) return number.toString();
         else if (number < 1000000) return `${(number / 1000).toFixed(1)}K`;
         else return `${(number / 1000000).toFixed(1)}M`;
     }
