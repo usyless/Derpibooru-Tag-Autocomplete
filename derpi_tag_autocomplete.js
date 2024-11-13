@@ -161,7 +161,7 @@
 
             let ignoredPrefix = '';
             if (query.length > 0) {
-                for (const op of ignored) if (query.substring(0, op.length) === op) {
+                for (const op of ignored) if (query.startsWith(op)) {
                     ignoredPrefix = op;
                     query = query.substring(op.length);
                     break;
