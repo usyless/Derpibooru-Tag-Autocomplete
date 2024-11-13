@@ -62,14 +62,17 @@
             }
         });
 
-        input.addEventListener('input', () => {
+        input.addEventListener('input', newSearch);
+        input.addEventListener('pointerup', newSearch);
+
+        function newSearch() {
             clearTimeout(timer);
             controller.abort();
             controller = new AbortController();
             currentQuery = cleanQuery(input.value, input.selectionStart);
             if (currentQuery.current.length <= 0) closeList();
             else timer = setTimeout(() => getResults(true), timeout);
-        });
+        }
 
         input.addEventListener('click', (e) => e.stopPropagation()); // Prevent closing list
 
@@ -119,13 +122,11 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
-                    const {parts, splitters, i} = JSON.parse(ac_list.dataset.query);
-                    parts[i] = e.target.closest("li").dataset.name;
+                    const {parts, splitters, i, ignoredPrefix} = JSON.parse(ac_list.dataset.query);
+                    parts[i] = ignoredPrefix + e.target.closest("li").dataset.name;
                     input.value = "";
                     for (let i = 0; i < parts.length; ++i) {
-                        let splitter = (splitters?.[i] ?? '')
-                        if (splitter.length > 0 && splitter.trimEnd() === splitter) splitter += ' '
-                        input.value += parts[i] + splitter;
+                        input.value += parts[i] + (splitters?.[i] ?? '');
                     }
                     input.setSelectionRange(input.value.length, input.value.length);
 
@@ -158,13 +159,15 @@
                 ++i;
             }
 
+            let ignoredPrefix = '';
             if (query.length > 0) {
                 for (const op of ignored) if (query.substring(0, op.length) === op) {
+                    ignoredPrefix = op;
                     query = query.substring(op.length);
                     break;
                 }
             }
-            return {current: query.trimStart().toLowerCase(), parts, splitters, i};
+            return {current: query.trimStart().toLowerCase(), parts, splitters, i, ignoredPrefix};
         };
     }
 
