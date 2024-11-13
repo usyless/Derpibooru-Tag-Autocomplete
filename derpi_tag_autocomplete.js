@@ -119,11 +119,13 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
-                    const query = JSON.parse(ac_list.dataset.query), parts = query.parts, splitters = query.splitters;
-                    parts[query.i] = e.target.closest("li").dataset.name;
+                    const {parts, splitters, i} = JSON.parse(ac_list.dataset.query);
+                    parts[i] = e.target.closest("li").dataset.name;
                     input.value = "";
                     for (let i = 0; i < parts.length; ++i) {
-                        input.value += parts[i] + (splitters?.[i] ?? '');
+                        let splitter = (splitters?.[i] ?? '')
+                        if (splitter.length > 0 && splitter.trimEnd() === splitter) splitter += ' '
+                        input.value += parts[i] + splitter;
                     }
                     input.setSelectionRange(input.value.length, input.value.length);
 
