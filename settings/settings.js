@@ -11,6 +11,11 @@ const options = {
             description: "Match the start of the tags, rather than any match within the name of the tag",
             default: false
         },
+        {
+            name: "special_searches",
+            description: "Include special search tags such as score:, created_at:, etc",
+            default: true
+        }
     ],
     "Local Autocomplete (Only for Firefox)": [
         {

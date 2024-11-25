@@ -61,8 +61,10 @@
             const specials = [];
             if (newQuery) {
                 page = 1;
-                for (const special of special_searches) if (special.startsWith(curr)) {
-                    specials.push({aliased_tag: null, name: special, images: -1});
+                if (Settings.preferences.special_searches) {
+                    for (const special of special_searches) if (special.startsWith(curr)) {
+                        specials.push({aliased_tag: null, name: special, images: -1});
+                    }
                 }
             } else ++page;
             q.current.length <= 0
@@ -247,7 +249,8 @@
         class Settings {
             preferences = {
                 match_start: false,
-                local_autocomplete_enabled: false
+                local_autocomplete_enabled: false,
+                special_searches: true
             }
 
             async loadSettings() {
