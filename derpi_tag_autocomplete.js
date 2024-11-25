@@ -1,8 +1,9 @@
 'use strict';
 
 (async () => {
+    const DEFAULT_TIMEOUT = 200;
     const Settings = await getSettings();
-    let fetchfunc, timeout = 250, worker, cleanQuery;
+    let fetchfunc, timeout = DEFAULT_TIMEOUT, worker, cleanQuery;
 
     function autocomplete(input, ac_list) {
         let recievedPage = true, currentQuery = '', page = 1, controller = new AbortController(), timer;
@@ -194,7 +195,7 @@
                 }
             });
         } else {
-            timeout = 250;
+            timeout = DEFAULT_TIMEOUT;
             fetchfunc = async (query, page, controller) => {
                 return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
                             {method: "GET", signal: controller.signal})).json())['tags']
