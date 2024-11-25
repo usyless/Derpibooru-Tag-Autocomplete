@@ -5,6 +5,12 @@
     const Settings = await getSettings();
     let fetchfunc, timeout = DEFAULT_TIMEOUT, worker, cleanQuery;
 
+    const special_searches = [
+        'created_at:', 'aspect_ratio:', 'comment_count:', 'description:', 'downvotes:', 'faved_by:',
+        'faves:', 'height:', 'id:', 'mime_type:', 'orig_sha512_hash:', 'original_format:', 'score:', 'sha512_hash:',
+        'source_count:', 'source_url:', 'tag_count:', 'uploader:', 'upvotes:', 'width:', 'wilson_score:'
+    ]
+
     function autocomplete(input, ac_list) {
         let recievedPage = true, currentQuery = '', page = 1, controller = new AbortController(), timer;
         const createListItem = listItemTemplate();
@@ -36,7 +42,10 @@
         }
 
         function displayAutocompleteResults(newQuery, query, data) {
-            if (newQuery) closeList();
+            if (newQuery) {
+                closeList();
+                document.addEventListener('click', closeList);
+            }
             if (data != null && data.length > 0) {
                 recievedPage = true;
                 ac_list.classList.remove('hidden');
@@ -48,13 +57,17 @@
 
         async function getResults(newQuery) {
             recievedPage = false;
+            const q = JSON.parse(JSON.stringify(currentQuery)), curr = q.current;
+            const specials = [];
             if (newQuery) {
                 page = 1;
+                for (const special of special_searches) if (special.startsWith(curr)) {
+                    specials.push({aliased_tag: null, name: special, images: -1});
+                }
             } else ++page;
-            const q = JSON.parse(JSON.stringify(currentQuery));
             q.current.length <= 0
                 ? closeList()
-                : displayAutocompleteResults(newQuery, q, await fetchfunc(q.current, page, controller));
+                : displayAutocompleteResults(newQuery, q, specials.concat(await fetchfunc(q.current, page, controller)));
         }
 
         input.addEventListener('focus', async () => {
@@ -83,7 +96,7 @@
             const keyMappings = {
                 40: () => changeActive(true), // up
                 38: () => changeActive(false), // down
-                9: () => document.querySelector('[class*="ac-active"]').click() // tab
+                9: () => document.querySelector('.ac-list li.ac-active').click() // tab
             };
 
             input.addEventListener('keydown', (e) => {
@@ -95,7 +108,7 @@
             });
 
             function changeActive(down) {
-                const oldItem = document.querySelector('[class*="ac-active"]');
+                const oldItem = document.querySelector('.ac-list li.ac-active');
                 oldItem.classList.remove('ac-active');
 
                 let newItem = down ? oldItem.nextElementSibling : oldItem.previousElementSibling;
@@ -109,6 +122,7 @@
         }
 
         function closeList() {
+            document.removeEventListener('click', closeList);
             ac_list.classList.add('hidden');
             const newList = ac_list.cloneNode();
             ac_list.parentNode.replaceChild(newList, ac_list);
@@ -141,8 +155,6 @@
                 });
             }
         }
-
-        document.addEventListener('click', closeList);
     }
 
     {

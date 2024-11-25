@@ -2,12 +2,6 @@
 
 let tags = [], pos = -1, length, comparator = 'includes';
 
-const special_searches = [
-    'created_at:', 'aspect_ratio:', 'comment_count:', 'created_at:', 'description:', 'downvotes:', 'faved_by:',
-    'faves:', 'height:', 'id:', 'mime_type:', 'orig_sha512_hash:', 'original_format:', 'score:', 'sha512_hash:',
-    'source_count:', 'source_url:', 'tag_count:', 'uploader:', 'upvotes:', 'width:', 'wilson_score:'
-]
-
 const typeMap = {
     data: (data) => {
         parseCSV(data.data);
@@ -17,18 +11,12 @@ const typeMap = {
     query: (data) => {
         if (length > 0) {
             const query = data.query, query_length = query.length, result = [];
-            if (data.newQuery) {
-                pos = -1;
-                for (const special of special_searches) if (special.startsWith(query)) {
-                    result.push({aliased_tag: null, name: special, images: -1})
-                }
-            }
+            if (data.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {
                 const tuple = tags[pos];
                 if (query_length <= tuple[0].length && tuple[0][comparator](query)) {
                     result.push({aliased_tag: null, name: tuple[0], images: tuple[2]});
-                }
-                else for (const a of tuple[1]) if (query_length <= a.length && a[comparator](query)) {
+                } else for (const a of tuple[1]) if (query_length <= a.length && a[comparator](query)) {
                     result.push({aliased_tag: tuple[0], name: a, images: tuple[2]});
                     break;
                 }
