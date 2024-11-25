@@ -3,7 +3,6 @@
 }
 .ac-list {
   position: absolute;
-  border: 1px solid #112440;
   overflow-x: clip;
   overflow-y: scroll;
   scroll-behavior: smooth;
@@ -18,20 +17,19 @@
 .ac-list li {
   padding: 10px;
   cursor: pointer;
-  background-color: #1c3252;
-  border-bottom: 1px solid #112440;
+  background-color: #1c3252; /* default dark mode */
+  border-bottom: 1px solid #112440; /* default dark mode */
   list-style-type: none;
 }
 .ac-list li:hover {
-  background-color: #284371;
+  background-color: #1d2b44; /* default dark mode */
 }
 .ac-list li div {
   position: relative;
   align-content: center;
 }
-.ac-active {
-  background-color: DodgerBlue !important;
-  color: #ffffff !important;
+.ac-list li.ac-active {
+  background-color: #3066b3; /* default dark mode */
 }
 .text-div {
   float: left;
@@ -43,4 +41,31 @@
 }
 .hidden {
   display: none;
+}
+
+body[data-theme="red"] .ac-list li {
+  background-color: #5e2727;
+  border-bottom-color: #7a2d2d;
+}
+
+body[data-theme="red"] .ac-list li:hover {
+  background-color: #7a2d2d;
+}
+
+body[data-theme="red"] .ac-list li.ac-active {
+  background-color: #c33939;
+}
+
+body[data-theme="default"] .ac-list li {
+  background-color: #62a7d9;
+  border-bottom-color: #e2ebf2;
+  color: #fff;
+}
+
+body[data-theme="default"] .ac-list li:hover {
+  background-color: #3d92d0;
+}
+
+body[data-theme="default"] .ac-list li.ac-active {
+  background-color: #1796e8;
 }
