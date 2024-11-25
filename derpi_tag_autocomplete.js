@@ -36,8 +36,9 @@
 
         function displayAutocompleteResults(newQuery, query, data) {
             if (newQuery) closeList();
-            if (data && data.length > 0) {
+            if (data != null && data.length > 0) {
                 recievedPage = true;
+                ac_list.classList.remove('hidden');
                 for (const i of data) ac_list.appendChild(createListItem(query.current, i['aliased_tag'], i['name'], i['images']));
                 ac_list.dataset.query = JSON.stringify(query);
                 if (newQuery) ac_list.firstElementChild.classList.add('ac-active');
@@ -67,7 +68,8 @@
 
         function newSearch() {
             clearTimeout(timer);
-            controller.abort();
+            if (!controller.signal.aborted) controller.abort();
+            input.autocomplete = 'off';
             controller = new AbortController();
             currentQuery = cleanQuery(input.value, input.selectionStart);
             if (currentQuery.current.length <= 0) closeList();
@@ -106,6 +108,7 @@
         }
 
         function closeList() {
+            ac_list.classList.add('hidden');
             const newList = ac_list.cloneNode();
             ac_list.parentNode.replaceChild(newList, ac_list);
             ac_list = newList;
@@ -186,7 +189,7 @@
             timeout = 0;
             fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
                 if (worker) {
-                    worker.onmessage = (d) => resolve(d.data);
+                    worker.onmessage = (d) => !controller.signal.aborted && resolve(d.data);
                     worker.postMessage({type: 'query', query: query, newQuery: page === 1});
                 }
             });
@@ -212,7 +215,7 @@
                 input.removeAttribute('data-ac');
                 input.autocomplete = 'off';
 
-                ac_list.classList.add('ac-list');
+                ac_list.classList.add('ac-list', 'hidden');
                 input.parentNode.parentNode.appendChild(ac_list);
 
                 autocomplete(input, ac_list);

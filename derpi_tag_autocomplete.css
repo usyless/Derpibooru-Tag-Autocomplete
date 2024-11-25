@@ -41,3 +41,6 @@
   float: right;
   color: inherit;
 }
+.hidden {
+  display: none;
+}
