@@ -209,6 +209,7 @@
                 form.before(div);
                 div.appendChild(form);
 
+                input.removeAttribute('data-ac');
                 input.autocomplete = 'off';
 
                 ac_list.classList.add('ac-list');
