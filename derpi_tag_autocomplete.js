@@ -49,7 +49,8 @@
             if (data != null && data.length > 0) {
                 recievedPage = true;
                 ac_list.classList.remove('hidden');
-                for (const i of data) ac_list.appendChild(createListItem(query.current, i['aliased_tag'], i['name'], i['images']));
+                const curr = query.current;
+                for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
                 ac_list.dataset.query = JSON.stringify(query);
                 if (newQuery) ac_list.firstElementChild.classList.add('ac-active');
             }
@@ -57,8 +58,7 @@
 
         async function getResults(newQuery) {
             recievedPage = false;
-            const q = JSON.parse(JSON.stringify(currentQuery)), curr = q.current;
-            const specials = [];
+            const curr = currentQuery.current, specials = [];
             if (newQuery) {
                 page = 1;
                 if (Settings.preferences.special_searches) {
@@ -67,9 +67,9 @@
                     }
                 }
             } else ++page;
-            q.current.length <= 0
+            curr.length <= 0
                 ? closeList()
-                : displayAutocompleteResults(newQuery, q, specials.concat(await fetchfunc(curr, page, controller)));
+                : displayAutocompleteResults(newQuery, currentQuery, specials.concat(await fetchfunc(curr, page, controller)));
         }
 
         input.addEventListener('focus', async () => {
@@ -139,13 +139,11 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
-                    const {parts, splitters, i, ignoredPrefix} = JSON.parse(ac_list.dataset.query);
-                    parts[i] = ignoredPrefix + e.target.closest("li").dataset.name;
+                    const {parts, splitters, i, ignoredPrefix, uncleaned, lengthCounter} = JSON.parse(ac_list.dataset.query);
+                    parts[i] = parts[i].replace(uncleaned, e.target.closest("li").dataset.name);
                     input.value = "";
-                    for (let i = 0; i < parts.length; ++i) {
-                        input.value += parts[i] + (splitters?.[i] ?? '');
-                    }
-                    input.setSelectionRange(input.value.length, input.value.length);
+                    for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
+                    input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
 
                     input.dispatchEvent(new Event('input'));
                     input.focus();
@@ -182,7 +180,7 @@
                     break;
                 }
             }
-            return {current: query.trimStart().toLowerCase(), parts, splitters, i, ignoredPrefix};
+            return {current: query.trimStart().toLowerCase(), parts, splitters, i, ignoredPrefix, lengthCounter, uncleaned: query.trimStart()};
         };
     }
 
