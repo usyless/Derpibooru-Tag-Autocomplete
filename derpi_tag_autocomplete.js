@@ -191,15 +191,18 @@
         else return `${(number / 1000000).toFixed(1)}M`;
     }
 
-    await updateFetchFunc();
-    async function updateFetchFunc() {
+    updateFetchFunc();
+    function updateFetchFunc() {
         worker?.terminate?.();
         worker = null;
         if (Settings.preferences.local_autocomplete_enabled) {
             timeout = 0;
             fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
                 if (worker) {
-                    worker.onmessage = (d) => !controller.signal.aborted && resolve(d.data);
+                    worker.onmessage = (d) => {
+                        if (controller.signal.aborted) reject('Autocomplete Cancelled');
+                        resolve(d.data);
+                    }
                     worker.postMessage({type: 'query', query: query, newQuery: page === 1});
                 }
             });
@@ -236,7 +239,7 @@
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
             await Settings.loadSettings();
-            await updateFetchFunc();
+            updateFetchFunc();
         }
     });
 
