@@ -113,11 +113,8 @@
                 const oldItem = document.querySelector('.ac-list li.ac-active');
                 oldItem.classList.remove('ac-active');
 
-                let newItem = down ? oldItem.nextElementSibling : oldItem.previousElementSibling;
-                if (!newItem) {
-                    if (!recievedPage && down) newItem = ac_list.firstElementChild;
-                    else if (!down) newItem = ac_list.lastElementChild;
-                }
+                const newItem = down ? oldItem.nextElementSibling ?? ac_list.firstElementChild
+                    : oldItem.previousElementSibling ?? ac_list.lastElementChild;
                 newItem.classList.add('ac-active');
                 newItem.scrollIntoView({block: 'center'});
             }

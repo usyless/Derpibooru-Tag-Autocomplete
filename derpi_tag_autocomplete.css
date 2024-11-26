@@ -24,10 +24,6 @@
             position: relative;
             align-content: center;
         }
-
-        &.ac-active {
-            font-weight: bold;
-        }
     }
 }
 
