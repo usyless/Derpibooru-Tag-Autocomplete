@@ -69,7 +69,7 @@
             } else ++page;
             q.current.length <= 0
                 ? closeList()
-                : displayAutocompleteResults(newQuery, q, specials.concat(await fetchfunc(q.current, page, controller)));
+                : displayAutocompleteResults(newQuery, q, specials.concat(await fetchfunc(curr, page, controller)));
         }
 
         input.addEventListener('focus', async () => {
@@ -96,13 +96,13 @@
 
         { // Mapping Keys to their functions
             const keyMappings = {
-                40: () => changeActive(true), // up
-                38: () => changeActive(false), // down
-                9: () => document.querySelector('.ac-list li.ac-active').click() // tab
+                'ArrowDown' : () => changeActive(true),
+                'ArrowUp' : () => changeActive(false),
+                'Tab' : () => document.querySelector('.ac-list li.ac-active').click()
             };
 
             input.addEventListener('keydown', (e) => {
-                const action = keyMappings[e.keyCode];
+                const action = keyMappings[e.key];
                 if (action) {
                     e.preventDefault();
                     action();
