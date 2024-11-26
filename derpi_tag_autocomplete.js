@@ -236,7 +236,7 @@
     }
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local') for (const key in changes) {
+        if (namespace === 'local') {
             await Settings.loadSettings();
             await updateFetchFunc();
         }
