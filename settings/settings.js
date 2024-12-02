@@ -1,33 +1,33 @@
-if (typeof browser === "undefined") {
+if (typeof browser === 'undefined') {
     var browser = chrome;
 }
 
-const DIV = document.getElementById("settings");
+const DIV = document.getElementById('settings');
 
 const options = {
-    "Preferences": [
+    'Preferences': [
         {
-            name: "match_start",
+            name: 'match_start',
             description: "Match the start of the tags, rather than any match within the name of the tag",
             default: false
         },
         {
-            name: "special_searches",
-            description: "Include special search tags such as score:, created_at:, etc",
+            name: 'special_searches',
+            description: 'Include special search tags such as score:, created_at:, etc',
             default: true
         }
     ],
-    "Local Autocomplete (Only for Firefox)": [
+    'Local Autocomplete (Only for Firefox)': [
         {
-            name: "local_autocomplete_enabled",
-            description: "Enable local autocomplete rather than with the API (must provide a tag file below)",
+            name: 'local_autocomplete_enabled',
+            description: 'Enable local autocomplete (must provide a tag file below)',
             default: false
         },
         {
-            name: "local_autocomplete_tags",
-            description: 'Choose the file for local autocomplete (must be a csv, formatted as {tag name},{tag count},"{tag aliases separated by commas inside quotes}")',
+            name: 'local_autocomplete_tags',
+            description: '',
             type: 'button',
-            button: 'Pick File',
+            button: 'Pick file for local autocomplete (must be a csv, formatted as {tag name},{tag count},"{tag aliases separated by commas inside quotes}")',
             onclick: () => {
                 document.getElementById('local_autocomplete_tags_input').click();
             },
@@ -41,17 +41,17 @@ const options = {
                         const file = e.target.files[0];
                         if (!file) return;
                         let reader = new FileReader();
-                        reader.addEventListener("load", async () => {
+                        reader.addEventListener('load', async () => {
                             const data = {};
-                            data["local_autocomplete_tags"] = reader.result;
-                            data["local_autocomplete_current_file_name"] = file.name;
+                            data['local_autocomplete_tags'] = reader.result;
+                            data['local_autocomplete_current_file_name'] = file.name;
                             try {
                                 await setStorage(data);
-                                alert("Tags saved");
+                                alert('Tags saved');
                             } catch {
-                                alert("File size too big");
+                                alert('File size too big');
                             }
-                            document.getElementById("local_autocomplete_current_file_name").textContent = file.name;
+                            document.getElementById('local_autocomplete_current_file_name').textContent = file.name;
                         })
                         reader.readAsText(file);
                 });
@@ -59,20 +59,21 @@ const options = {
             }
         },
         {
-            name: "local_autocomplete_current_file_name",
-            description: "Currently loaded tags file name: ",
+            name: 'local_autocomplete_current_file_name',
+            description: 'Currently loaded tags file name: ',
             type: 'info',
             default: 'No file currently loaded'
         }
     ],
-    "Additional": [
+    'Extras': [
         {
-            name: "reset_all_settings",
-            description: "Reset this extensions settings to their defaults",
+            name: 'reset_all_settings',
+            description: '',
             type: 'button',
-            button: 'RESET SETTINGS',
+            button: 'Reset to DEFAULT settings',
+            class: ['warning'],
             onclick: () => {
-                if (confirm("Are you sure you want to RESET this extensions settings?")) {
+                if (confirm('Are you sure you want to RESET this extensions settings?')) {
                     clearStorage();
                     window.location.reload();
                 }
@@ -86,8 +87,8 @@ const typeMap = {
 }
 let values;
 for (const section in options) {
-    const outer = document.createElement("div"), h = document.createElement("h2");
-    h.innerText = section + ":";
+    const outer = document.createElement('div'), h = document.createElement('h2');
+    h.textContent = section;
     outer.appendChild(h);
     for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
     DIV.appendChild(outer);
@@ -99,32 +100,34 @@ function create(elem) {
 }
 
 function create_checkbox(e) {
-    const [outer, checkbox] = get_generic_setting(e, "input");
-    checkbox.setAttribute("type", "checkbox");
+    const [outer, checkbox] = get_generic_setting(e, 'input', true);
+    checkbox.setAttribute('type', 'checkbox');
     get_value(e.name, e.default).then(v => checkbox.checked = v);
     checkbox.addEventListener('change', toggle_value)
     return outer;
 }
 
 function create_button(e) {
-    const [outer, button] = get_generic_setting(e, "button");
+    const [outer, button] = get_generic_setting(e, 'button');
     button.textContent = e.button;
     button.addEventListener('click', e.onclick);
     return outer;
 }
 
 function create_info(e) {
-    const [outer, info] = get_generic_setting(e, "span");
+    const [outer, info] = get_generic_setting(e, 'span');
     get_value(e.name, e.default).then(v => info.textContent = v);
     return outer;
 }
 
-function get_generic_setting(e, element) {
-    const outer = document.createElement("div"), label = document.createElement("label"), elem = document.createElement(element);
+function get_generic_setting(e, element, flipOrder) {
+    const outer = document.createElement('div'), label = document.createElement('label'), elem = document.createElement(element);
     label.textContent = e.description;
-    label.setAttribute("for", e.name);
+    label.setAttribute('for', e.name);
     elem.id = e.name;
-    outer.append(label, elem);
+    if (e.class) elem.classList.add(...e.class);
+    if (flipOrder) outer.append(elem, label);
+    else outer.append(label, elem);
     return [outer, elem];
 }
 
