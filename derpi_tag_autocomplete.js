@@ -3,7 +3,7 @@
 (async () => {
     const DEFAULT_TIMEOUT = 200;
     const Settings = await getSettings();
-    const scrollEvent = new Event('scroll');
+    const scrollEvent = new Event('scroll'), inputEvent = new Event('input');
     let fetchfunc, timeout = DEFAULT_TIMEOUT, worker, cleanQuery;
 
     const special_searches = [
@@ -147,7 +147,7 @@
                     for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
                     input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
 
-                    input.dispatchEvent(new Event('input'));
+                    input.dispatchEvent(inputEvent);
                     input.focus();
                     clearTimeout(timer);
                     closeList();
