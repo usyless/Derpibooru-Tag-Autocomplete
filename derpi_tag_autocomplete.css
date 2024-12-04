@@ -12,7 +12,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    max-height: calc(36px * var(--count));
+    max-height: calc(36px * var(--count, 6));
     color: #e0e0e0;
 
     li {
