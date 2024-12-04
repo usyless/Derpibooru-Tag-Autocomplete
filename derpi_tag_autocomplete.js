@@ -3,6 +3,7 @@
 (async () => {
     const DEFAULT_TIMEOUT = 200;
     const Settings = await getSettings();
+    const scrollEvent = new Event('scroll');
     let fetchfunc, timeout = DEFAULT_TIMEOUT, worker, cleanQuery;
 
     const special_searches = [
@@ -53,6 +54,7 @@
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
                 ac_list.dataset.query = JSON.stringify(query);
                 if (newQuery) ac_list.firstElementChild.classList.add('ac-active');
+                ac_list.dispatchEvent(scrollEvent);
             }
         }
 
@@ -215,6 +217,11 @@
         }
     }
 
+    const updateListLengths = () => {
+        const v = Number(Settings.preferences.results_visible);
+        for (const list of document.querySelectorAll('.ac-list')) list.style.setProperty('--count', v);
+    }
+
     const inputs = [document.getElementById('q'), document.getElementById('searchform_q')];
     for (const input of inputs) {
         if (input != null) {
@@ -235,11 +242,13 @@
             }
         }
     }
+    updateListLengths();
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
             await Settings.loadSettings();
             updateFetchFunc();
+            updateListLengths();
         }
     });
 
@@ -248,7 +257,8 @@
             preferences = {
                 match_start: false,
                 local_autocomplete_enabled: false,
-                special_searches: true
+                special_searches: true,
+                results_visible: 6
             }
 
             async loadSettings() {

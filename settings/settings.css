@@ -93,6 +93,26 @@ body {
         }
     }
 
+    input[type="number"] {
+        background-color: var(--additional);
+        color: inherit;
+        border-radius: 7px;
+        border: solid var(--background-dark) 2px;
+        font: inherit;
+        min-width: 10px;
+        width: 80px;
+        flex-shrink: 1;
+
+        &:active {
+            border-color: var(--additional-lighter);
+        }
+
+        &:focus-visible {
+            outline: none;
+            border-color: var(--additional-lighter);
+        }
+    }
+
     input[type="checkbox"] {
         accent-color: var(--accent);
         appearance: none;

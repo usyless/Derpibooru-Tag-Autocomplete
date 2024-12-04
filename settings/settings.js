@@ -15,6 +15,13 @@ const options = {
             name: 'special_searches',
             description: 'Include special search tags such as score:, created_at:, etc',
             default: true
+        },
+        {
+            name: 'results_visible',
+            description: 'Visible results count',
+            type: 'number',
+            default: 6,
+            validate: (v) => Number(v) >= 1
         }
     ],
     'Local Autocomplete (Only for Firefox)': [
@@ -83,11 +90,12 @@ const options = {
 }
 const typeMap = {
     button: create_button,
-    info: create_info
+    info: create_info,
+    number: create_number
 }
 let values;
 for (const section in options) {
-    const outer = document.createElement('div'), h = document.createElement('h2');
+    const outer = document.createElement('div'), h = document.createElement('h3');
     h.textContent = section;
     outer.appendChild(h);
     for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
@@ -117,6 +125,17 @@ function create_button(e) {
 function create_info(e) {
     const [outer, info] = get_generic_setting(e, 'span');
     get_value(e.name, e.default).then(v => info.textContent = v);
+    return outer;
+}
+
+function create_number(e) {
+    const [outer, input] = get_generic_setting(e, 'input');
+    input.type = 'number';
+    get_value(e.name, e.default).then(v => input.value = v);
+    input.addEventListener('input', () => {
+        if (e.validate(input.value)) setStorage({[e.name]: Number(input.value)});
+        else input.value = e.default;
+    });
     return outer;
 }
 
