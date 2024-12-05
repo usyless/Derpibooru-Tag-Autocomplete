@@ -1,15 +1,16 @@
 'use strict';
 
-let tags = [], pos = -1, length, comparator = 'includes', error = false;
+let tags = [], pos = -1, length, comparator = 'includes', error = null;
 
 const typeMap = {
     data: (data) => {
         parseCSV(data.data);
         length = tags.length;
+        if (length === 0) error = 'No tags CSV loaded, go to settings and load one to use local autocomplete.';
         comparator = data.match_start ? 'startsWith' : 'includes';
     },
     query: (data) => {
-        if (length > 0 && !error) {
+        if (!error) {
             const query = data.query, query_length = query.length, result = [];
             if (data.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {
@@ -24,20 +25,25 @@ const typeMap = {
             }
             postMessage(result);
         } else {
-            postMessage({aliased_tag: null, name: error ? 'Error occurred parsing CSV.'
-                    : 'No tags CSV loaded, go to settings and load one to use local autocomplete.', images: -2});
+            postMessage({aliased_tag: null, name: error, images: -2});
         }
     }
 }
 
 onmessage = (e) => typeMap[e.data.type]?.(e.data);
 
+class ParseError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ParseError';
+    }
+}
 function parseCSV(csvString) {
     try {
         tags = []
-        const push = tags.push.bind(tags);
-        for (const row of csvString.split('\n')) {
-            const values = row.split(',');
+        const push = tags.push.bind(tags), lines = csvString.split('\n'), ll = lines.length;
+        for (let i = 0; i < ll; ++i) {
+            const values = lines[i].split(',');
 
             if (values.length === 1 && values[0] === '') continue;
             else if (values.length >= 2) {
@@ -50,11 +56,11 @@ function parseCSV(csvString) {
 
                 push([values[0].trim().toLowerCase(), aliases, values[1]]);
             } else {
-                error = true;
-                return;
+                throw new ParseError(i.toString());
             }
         }
-    } catch {
-        error = true;
+    } catch (e) {
+        if (e instanceof ParseError) error = `Error parsing tags CSV at line ${Number(e.message) + 1}`;
+        else `Error parsing tags CSV. Error message: ${e.message}`;
     }
 }
