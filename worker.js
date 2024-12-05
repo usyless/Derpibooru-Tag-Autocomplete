@@ -40,7 +40,7 @@ function parseCSV(csvString) {
             const values = row.split(',');
 
             if (values.length === 1 && values[0] === '') continue;
-            if (values.length >= 2) {
+            else if (values.length >= 2) {
                 const aliases = [];
 
                 for (let i = 2; i < values.length; ++i) {
