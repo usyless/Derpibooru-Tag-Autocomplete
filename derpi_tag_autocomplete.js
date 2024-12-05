@@ -187,7 +187,8 @@
     }
 
     function simplifyNumber(number) {
-        if (number < 0) return 'special';
+        if (number === -2) return 'error';
+        else if (number === -1) return 'special';
         else if (number < 1000) return number.toString();
         else if (number < 1000000) return `${(number / 1000).toFixed(1)}K`;
         else return `${(number / 1000000).toFixed(1)}M`;
@@ -268,7 +269,7 @@
             }
 
             async getTags() {
-                return (await chrome.storage.local.get(['local_autocomplete_tags']))?.local_autocomplete_tags ?? {};
+                return (await chrome.storage.local.get(['local_autocomplete_tags']))?.local_autocomplete_tags ?? '';
             }
         }
 
