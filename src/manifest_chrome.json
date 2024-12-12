@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Derpibooru Tag Autocomplete",
+  "version": "1.2.4",
+  "description": "Tag autocompletion for Derpibooru.org",
+  "author": "usy",
+  "homepage_url": "https://github.com/usyless/Derpibooru-Tag-Autocomplete",
+  "icons": {
+    "96": "icons/tag-autocomplete-96.png"
+  },
+  "host_permissions": [
+    "https://derpibooru.org/*"
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://derpibooru.org/*"
+      ],
+      "js": [
+        "derpi_tag_autocomplete.js"
+      ],
+      "css": [
+        "derpi_tag_autocomplete.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "settings/settings.html",
+    "open_in_tab": false
+  },
+  "action": {
+    "default_icon": "icons/tag-autocomplete-96.png",
+    "default_title": "Settings",
+    "default_popup": "popup/popup.html"
+  },
+   "web_accessible_resources": [
+     {
+       "resources": ["worker.js"],
+       "matches": ["https://derpibooru.org/*"]
+     }
+   ]
+}

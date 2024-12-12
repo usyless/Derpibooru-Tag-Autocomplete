@@ -1,0 +1,7 @@
+shared\
+settings\
+popup\
+icons\
+derpi_tag_autocomplete.css
+derpi_tag_autocomplete.js
+worker.js
