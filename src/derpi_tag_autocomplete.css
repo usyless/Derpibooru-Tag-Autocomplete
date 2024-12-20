@@ -44,18 +44,18 @@
             filter: saturate(140%);
         }
     }
-}
 
-.text-div {
-    float: left;
-    color: inherit;
-}
+    .text-div {
+        float: left;
+        color: inherit;
+    }
 
-.number-div {
-    float: right;
-    color: inherit;
-}
+    .number-div {
+        float: right;
+        color: inherit;
+    }
 
-.hidden {
-    display: none;
+    &.hidden {
+        display: none;
+    }
 }
