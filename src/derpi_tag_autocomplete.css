@@ -23,6 +23,10 @@
     row-gap: 1px;
     background-color: color-mix(in srgb-linear, var(--header-field-color, var(--fallback-field-header-color)) 65%, black);
 
+    &, * {
+        transition: 50ms ease-in-out;
+    }
+
     li {
         padding: 10px;
         cursor: pointer;
