@@ -13,7 +13,7 @@
     ]
 
     function autocomplete(input, ac_list) {
-        let recievedPage = true, currentQuery = '', page = 1, controller = new AbortController(), timer;
+        let recievedPage = true, currentQuery, page = 1, controller = new AbortController(), timer;
         const createListItem = listItemTemplate();
 
         function listItemTemplate() {
@@ -46,6 +46,7 @@
             if (newQuery) {
                 closeList();
                 document.addEventListener('click', closeList);
+                ac_list.scrollTop = 0;
             }
             if (data != null && data.length > 0) {
                 recievedPage = true;
@@ -89,9 +90,12 @@
             if (!controller.signal.aborted) controller.abort();
             input.autocomplete = 'off';
             controller = new AbortController();
-            currentQuery = cleanQuery(input.value, input.selectionStart);
-            if (currentQuery.current.length <= 0) closeList();
-            else timer = setTimeout(() => getResults(true), timeout);
+            const newQuery = cleanQuery(input.value, input.selectionStart);
+            if (newQuery.current !== currentQuery?.current) {
+                currentQuery = newQuery;
+                if (currentQuery.current.length <= 0) closeList();
+                else timer = setTimeout(() => getResults(true), timeout);
+            }
         }
 
         input.addEventListener('click', (e) => e.stopPropagation()); // Prevent closing list
@@ -124,6 +128,7 @@
 
         function closeList() {
             document.removeEventListener('click', closeList);
+            currentQuery = null;
             ac_list.classList.add('hidden');
             const newList = ac_list.cloneNode();
             ac_list.parentNode.replaceChild(newList, ac_list);
