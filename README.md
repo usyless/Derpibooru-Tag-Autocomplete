@@ -9,8 +9,9 @@ Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using 
   - `,`, `AND`, `&&`, `OR`, `||`, `-`, `!`, `NOT`, `()`
 
 ## Settings
-- You can change the match mode from any match in the search to just matching the start of the tags
-- You can disable the searching of special tags, such as score:, created_at:, etc.
+- Change match mode from any match in the search to just matching the start of the tags
+- Toggle searching of special tags, such as score:, created_at:, etc.
+- Displayed results count
 - If you enable the local autocomplete you need to make sure to provide a valid tags file
 - The tags file is a csv of format `{tag name},{tag count},"{tag aliases separated by commas inside quotes}"`
 
@@ -26,7 +27,7 @@ Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using 
 
 ## Extension Images
 ### Desktop
-![Derpibooru Tag Autocomplete desktop](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/desktop.png?raw=true)
-![Derpibooru Tag Autocomplete desktop with red theme](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/desktop_red.png?raw=true)
+![Derpibooru Tag Autocomplete desktop with blue theme](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/desktop_blue.png?raw=true)
+![Derpibooru Tag Autocomplete desktop with purple theme](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/desktop_purple.png?raw=true)
 ### Mobile
-![Derpibooru Tag Autocomplete mobile](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/mobile.png?raw=true)
+![Derpibooru Tag Autocomplete mobile with purple theme](https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/mobile_purple.png?raw=true)
