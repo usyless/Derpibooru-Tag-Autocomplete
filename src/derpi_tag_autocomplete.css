@@ -3,6 +3,9 @@
 }
 
 .ac-list {
+    --fallback-field-header-color: #1c3252;
+    --fallback-header-color: #3a629c;
+
     position: absolute;
     overflow-x: clip;
     overflow-y: scroll;
@@ -13,7 +16,12 @@
     left: 0;
     right: 0;
     max-height: calc(36px * var(--count, 6));
-    color: #e0e0e0;
+    color: var(--text-light-color);
+
+    display: flex;
+    flex-direction: column;
+    row-gap: 1px;
+    background-color: color-mix(in srgb-linear, var(--header-field-color, var(--fallback-field-header-color)) 65%, black);
 
     li {
         padding: 10px;
@@ -23,6 +31,17 @@
         div {
             position: relative;
             align-content: center;
+        }
+
+        background-color: var(--header-field-color, var(--fallback-field-header-color));
+
+        &:hover {
+            background-color: color-mix(in srgb-linear, var(--header-field-color, var(--fallback-field-header-color)) 75%, black);
+        }
+
+        &.ac-active {
+            background-color: var(--header-color, var(--fallback-header-color));
+            filter: saturate(140%);
         }
     }
 }
@@ -39,45 +58,4 @@
 
 .hidden {
     display: none;
-}
-
-/*Themes*/
-.ac-list li { /* dark theme (default on unsupported theme) */
-    background-color: #1c3252;
-    border-bottom: 1px solid #112440;
-
-    &:hover {
-        background-color: #1d2b44;
-    }
-
-    &.ac-active {
-        background-color: #3066b3;
-    }
-}
-
-body[data-theme="red"] .ac-list li { /* red theme */
-    background-color: #5e2727;
-    border-bottom-color: #7a2d2d;
-
-    &:hover {
-        background-color: #7a2d2d;
-    }
-
-    &.ac-active {
-        background-color: #c33939;
-    }
-}
-
-body[data-theme="default"] .ac-list li { /* default theme (light mode) */
-    background-color: #62a7d9;
-    border-bottom-color: #e2ebf2;
-    color: #fff;
-
-    &:hover {
-        background-color: #3d92d0;
-    }
-
-    &.ac-active {
-        background-color: #1796e8;
-    }
 }

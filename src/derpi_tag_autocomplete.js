@@ -141,16 +141,19 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
-                    const {parts, splitters, i, ignoredPrefix, uncleaned, lengthCounter} = JSON.parse(ac_list.dataset.query);
-                    parts[i] = parts[i].replace(uncleaned, e.target.closest("li").dataset.name);
-                    input.value = "";
-                    for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
-                    input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
+                    const selected = e.target.closest("li");
+                    if (selected) {
+                        const {parts, splitters, i, ignoredPrefix, uncleaned, lengthCounter} = JSON.parse(ac_list.dataset.query);
+                        parts[i] = parts[i].replace(uncleaned, selected.dataset.name);
+                        input.value = "";
+                        for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
+                        input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
 
-                    input.dispatchEvent(inputEvent);
-                    input.focus();
-                    clearTimeout(timer);
-                    closeList();
+                        input.dispatchEvent(inputEvent);
+                        input.focus();
+                        clearTimeout(timer);
+                        closeList();
+                    }
                 });
             }
         }
