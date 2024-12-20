@@ -24,10 +24,10 @@ const options = {
             validate: (v) => Number(v) >= 1
         }
     ],
-    'Local Autocomplete (Only for Firefox)': [
+    'Local Autocomplete (Firefox Only)': [
         {
             name: 'local_autocomplete_enabled',
-            description: 'Enable local autocomplete (must provide a tag file below)',
+            description: 'Enable local autocomplete',
             default: false
         },
         {
