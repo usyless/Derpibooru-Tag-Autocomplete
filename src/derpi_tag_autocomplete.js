@@ -42,16 +42,16 @@
             }
         }
 
-        function displayAutocompleteResults(newQuery, query, data) {
+        function displayAutocompleteResults(newQuery, data) {
             if (newQuery) {
                 closeList(false);
-                document.addEventListener('click', closeList);
-                ac_list.dataset.query = JSON.stringify(query);
+                document.addEventListener('click', closeList, {once: true});
+                ac_list.dataset.query = JSON.stringify(currentQuery);
             }
             if (data != null && data.length > 0) {
                 recievedPage = true;
                 ac_list.classList.remove('hidden');
-                const curr = query.current;
+                const curr = currentQuery.current;
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
                 if (newQuery) {
                     ac_list.firstElementChild.classList.add('ac-active');
@@ -72,7 +72,7 @@
                     }
                 }
             } else ++page;
-            displayAutocompleteResults(newQuery, currentQuery, specials.concat(await fetchfunc(curr, page, controller)));
+            displayAutocompleteResults(newQuery, specials.concat(await fetchfunc(curr, page, controller)));
         }
 
         input.addEventListener('focus', async () => {
@@ -84,6 +84,7 @@
 
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
+        const resultsTimerFunc = () => getResults(true);
 
         function newSearch() {
             input.autocomplete = 'off';
@@ -94,7 +95,7 @@
                 controller = new AbortController();
                 currentQuery = newQuery;
                 if (currentQuery.current.length <= 0) closeList();
-                else timer = setTimeout(() => getResults(true), timeout);
+                else timer = setTimeout(resultsTimerFunc, timeout);
             }
         }
 
@@ -104,7 +105,7 @@
             const keyMappings = {
                 'ArrowDown' : () => changeActive(true),
                 'ArrowUp' : () => changeActive(false),
-                'Tab' : () => document.querySelector('.ac-list li.ac-active').click()
+                'Tab' : () => ac_list.querySelector('.ac-active').click()
             };
 
             input.addEventListener('keydown', (e) => {
@@ -116,7 +117,7 @@
             });
 
             function changeActive(down) {
-                const oldItem = document.querySelector('.ac-list li.ac-active');
+                const oldItem = ac_list.querySelector('.ac-active');
                 oldItem.classList.remove('ac-active');
 
                 const newItem = down ? oldItem.nextElementSibling ?? ac_list.firstElementChild
