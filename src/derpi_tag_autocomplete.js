@@ -44,17 +44,19 @@
 
         function displayAutocompleteResults(newQuery, query, data) {
             if (newQuery) {
-                closeList();
+                closeList(false);
                 document.addEventListener('click', closeList);
-                ac_list.scrollTop = 0;
+                ac_list.dataset.query = JSON.stringify(query);
             }
             if (data != null && data.length > 0) {
                 recievedPage = true;
                 ac_list.classList.remove('hidden');
                 const curr = query.current;
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
-                ac_list.dataset.query = JSON.stringify(query);
-                if (newQuery) ac_list.firstElementChild.classList.add('ac-active');
+                if (newQuery) {
+                    ac_list.firstElementChild.classList.add('ac-active');
+                    ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
+                }
                 ac_list.dispatchEvent(scrollEvent);
             }
         }
@@ -70,9 +72,7 @@
                     }
                 }
             } else ++page;
-            curr.length <= 0
-                ? closeList()
-                : displayAutocompleteResults(newQuery, currentQuery, specials.concat(await fetchfunc(curr, page, controller)));
+            displayAutocompleteResults(newQuery, currentQuery, specials.concat(await fetchfunc(curr, page, controller)));
         }
 
         input.addEventListener('focus', async () => {
@@ -86,12 +86,12 @@
         input.addEventListener('pointerup', newSearch);
 
         function newSearch() {
-            clearTimeout(timer);
-            if (!controller.signal.aborted) controller.abort();
             input.autocomplete = 'off';
-            controller = new AbortController();
             const newQuery = cleanQuery(input.value, input.selectionStart);
             if (newQuery.current !== currentQuery?.current) {
+                clearTimeout(timer);
+                if (!controller.signal.aborted) controller.abort();
+                controller = new AbortController();
                 currentQuery = newQuery;
                 if (currentQuery.current.length <= 0) closeList();
                 else timer = setTimeout(() => getResults(true), timeout);
@@ -126,9 +126,9 @@
             }
         }
 
-        function closeList() {
+        function closeList(full = true) {
             document.removeEventListener('click', closeList);
-            currentQuery = null;
+            if (full) currentQuery = null;
             ac_list.classList.add('hidden');
             const newList = ac_list.cloneNode();
             ac_list.parentNode.replaceChild(newList, ac_list);

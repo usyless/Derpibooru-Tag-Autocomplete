@@ -39,8 +39,10 @@
 
         background-color: var(--header-field-color, var(--fallback-field-header-color));
 
-        &:hover {
-            background-color: color-mix(in srgb-linear, var(--header-field-color, var(--fallback-field-header-color)) 75%, black);
+        @media (hover: hover) {
+            &:hover {
+                background-color: color-mix(in srgb-linear, var(--header-field-color, var(--fallback-field-header-color)) 75%, black);
+            }
         }
 
         &.ac-active {
