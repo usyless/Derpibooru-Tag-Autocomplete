@@ -84,7 +84,6 @@
 
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
-        const resultsTimerFunc = () => getResults(true);
 
         function newSearch() {
             input.autocomplete = 'off';
@@ -95,7 +94,7 @@
                 controller = new AbortController();
                 currentQuery = newQuery;
                 if (currentQuery.current.length <= 0) closeList();
-                else timer = setTimeout(resultsTimerFunc, timeout);
+                else timer = setTimeout(getResults, timeout, true);
             }
         }
 
