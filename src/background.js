@@ -174,12 +174,13 @@ function local_autocomplete_get() {
 
                     push([values[0].trim().toLowerCase(), aliases, values[1]]);
                 } else {
-                    throw new ParseError(i.toString());
+                    error = `Error parsing tags CSV at line ${Number(i.toString()) + 1}`
+                    tags = [];
+                    return;
                 }
             }
         } catch (e) {
-            error = (e instanceof ParseError) ? `Error parsing tags CSV at line ${Number(e.message) + 1}` :
-                `Error parsing tags CSV. Error message: ${e.message}`;
+            error = `Error parsing tags CSV. Error message: ${e.message}`;
         }
     }
 }
