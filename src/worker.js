@@ -1,7 +1,6 @@
 'use strict';
 
 let tags = [], pos = -1, length, comparator = 'includes', error = null;
-
 const typeMap = {
     data: (data) => {
         parseCSV(data.data);

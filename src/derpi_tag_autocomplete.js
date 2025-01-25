@@ -223,7 +223,7 @@
                             match_start: Settings.preferences.match_start
                         }).then((r) => {
                             if (controller.signal.aborted) reject('Autocomplete Cancelled');
-                            else resolve(r.data);
+                            else resolve(r);
                         });
                     }
                 });
@@ -269,7 +269,7 @@
 
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local') {
-            if (changes.hasOwnProperty('preference')) {
+            if (changes.hasOwnProperty('preferences')) {
                 Settings.loadSettings().then(() => {
                     updateFetchFunc();
                     updateListLengths();

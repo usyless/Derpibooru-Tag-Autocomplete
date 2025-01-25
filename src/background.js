@@ -92,7 +92,7 @@ function getHistoryDB() {
 function local_autocomplete_set(request) {
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
-            db.transaction(['local_autocomplete'], 'readwrite').objectStore('data')
+            db.transaction(['data'], 'readwrite').objectStore('data')
                 .put({id: "1", data: request.data}).addEventListener('success', resolve);
         });
     });
@@ -101,7 +101,7 @@ function local_autocomplete_set(request) {
 function local_autocomplete_get() {
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
-            db.transaction(['local_autocomplete'], 'readonly').objectStore('data').get("1").addEventListener('success', (e) => {
+            db.transaction(['data'], 'readonly').objectStore('data').get("1").addEventListener('success', (e) => {
                 resolve(e.target.result.data);
             });
         });
@@ -125,7 +125,10 @@ function local_autocomplete_load(request, sendResponse) {
 }
 
 function local_autocomplete_complete(request, sendResponse) {
-    local_autocomplete_worker.onmessage = sendResponse;
+    console.log("hi", request, local_autocomplete_worker);
+    local_autocomplete_worker.onmessage = (r) => {
+        sendResponse(r.data);
+    };
     request.type = 'query';
     local_autocomplete_worker.postMessage(request);
 }
