@@ -89,11 +89,11 @@ function getHistoryDB() {
     });
 }
 
-function local_autocomplete_set(request) {
-    return new Promise((resolve) => {
-        getHistoryDB().then((db) => {
-            db.transaction(['data'], 'readwrite').objectStore('data')
-                .put({id: "1", data: request.data}).addEventListener('success', resolve);
+function local_autocomplete_set(request, sendResponse) {
+    getHistoryDB().then((db) => {
+        db.transaction(['data'], 'readwrite').objectStore('data')
+            .put({id: "1", data: request.data}).addEventListener('success', () => {
+                sendResponse(true);
         });
     });
 }
