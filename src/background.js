@@ -110,7 +110,7 @@ function local_autocomplete_get() {
 
 {
     let tags = [], pos = -1, length, error = null;
-    let setting_up_worker = false, loaded = false
+    let setting_up_worker = false, loaded = false;
 
     requestMap['local_autocomplete_load'] = (request, sendResponse) => {
         if (loaded) sendResponse(true);
@@ -130,8 +130,8 @@ function local_autocomplete_get() {
 
     requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
         if (error == null) {
-            const comparator = request.match_start ? 'startsWith' : 'includes';
-            const query = request.query, query_length = query.length, result = [];
+            const comparator = request.match_start ? 'startsWith' : 'includes',
+                query = request.query, query_length = query.length, result = [];
             if (request.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {
                 const tuple = tags[pos];
