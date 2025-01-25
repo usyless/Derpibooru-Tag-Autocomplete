@@ -7,10 +7,10 @@ const typeMap = {
         parseCSV(data.data);
         length = tags.length;
         if (length === 0) error = 'No tags CSV loaded, go to settings and load one to use local autocomplete.';
-        comparator = data.match_start ? 'startsWith' : 'includes';
     },
     query: (data) => {
         if (!error) {
+            comparator = data.match_start ? 'startsWith' : 'includes';
             const query = data.query, query_length = query.length, result = [];
             if (data.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {

@@ -1,6 +1,7 @@
 const requestMap = {
     local_autocomplete_set: local_autocomplete_set,
     local_autocomplete_complete: local_autocomplete_complete,
+    local_autocomplete_load: local_autocomplete_load,
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -57,7 +58,8 @@ function updateLocalAutocompleteDB() {
                 const db = event.target.result;
 
                 if (event.oldVersion <= 0) {
-                    db.createObjectStore('data', {keyPath: 'id'});
+                    const objectStore = db.createObjectStore('data', {keyPath: 'id'});
+                    objectStore.put({id: "1", data: ""});
                 }
 
                 resolve(true);
@@ -108,6 +110,20 @@ function local_autocomplete_get() {
 
 let local_autocomplete_worker;
 let setting_up_worker = false;
-function local_autocomplete_complete() {
+function local_autocomplete_load(request, sendResponse) {
+    if (local_autocomplete_worker != null) sendResponse(true);
+    else if (!setting_up_worker) {
+        setting_up_worker = true;
+        local_autocomplete_worker = new Worker("/worker.js");
+        local_autocomplete_get().then((r) => {
+            local_autocomplete_worker.postMessage({type: 'data', data: r});
+            sendResponse(true);
+        });
+    } else {
+        sendResponse(false);
+    }
+}
+
+function local_autocomplete_complete(request, sendResponse) {
 
 }

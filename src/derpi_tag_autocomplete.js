@@ -3,7 +3,7 @@
 (async () => {
     const DEFAULT_TIMEOUT = 200;
     const scrollEvent = new Event('scroll'), inputEvent = new Event('input');
-    let fetchfunc, timeout = DEFAULT_TIMEOUT, worker, cleanQuery;
+    let fetchfunc, timeout = DEFAULT_TIMEOUT, cleanQuery;
 
     const special_searches = [
         'created_at:', 'aspect_ratio:', 'comment_count:', 'description:', 'downvotes:', 'faved_by:',
@@ -89,13 +89,9 @@
             displayAutocompleteResults(newQuery, specials.concat(await fetchfunc(curr, page, controller)));
         }
 
-        input.addEventListener('focus', async () => {
-            if (Settings.preferences.local_autocomplete_enabled && !worker) {
-                worker = new Worker(chrome.runtime.getURL("worker.js"));
-                worker.postMessage({type: 'data', data: await Settings.getTags(), match_start: Settings.preferences.match_start});
-            }
+        input.addEventListener('focus', () => {
+            if (Settings.preferences.local_autocomplete_enabled) chrome.runtime.sendMessage({type: 'local_autocomplete_load'});
         });
-
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
 
@@ -217,18 +213,20 @@
     }
 
     const updateFetchFunc = () => {
-        worker?.terminate?.();
-        worker = null;
         if (Settings.preferences.local_autocomplete_enabled) {
             timeout = 0;
             fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
-                if (worker) {
-                    worker.onmessage = (d) => {
-                        if (controller.signal.aborted) reject('Autocomplete Cancelled');
-                        resolve(d.data);
+                chrome.runtime.sendMessage({type: 'local_autocomplete_load'}).then((r) => {
+                    if (r) {
+                        chrome.runtime.sendMessage({
+                            type: 'local_autocomplete_complete', query, newQuery: page === 1,
+                            match_start: Settings.preferences.match_start
+                        }).then((r) => {
+                            if (controller.signal.aborted) reject('Autocomplete Cancelled');
+                            else resolve(r);
+                        });
                     }
-                    worker.postMessage({type: 'query', query: query, newQuery: page === 1});
-                }
+                });
             });
         } else {
             timeout = DEFAULT_TIMEOUT;
@@ -269,7 +267,7 @@
         updateListLengths();
     });
 
-    chrome.storage.onChanged.addListener(async (changes, namespace) => {
+    chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local') {
             if (changes.hasOwnProperty('preference')) {
                 Settings.loadSettings().then(() => {
