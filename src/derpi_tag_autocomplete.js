@@ -225,7 +225,7 @@
                             if (controller.signal.aborted) reject('Autocomplete Cancelled');
                             else resolve(r);
                         });
-                    }
+                    } else reject();
                 });
             });
         } else {
