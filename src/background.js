@@ -129,7 +129,7 @@ function local_autocomplete_get() {
     };
 
     requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
-        if (error != null) {
+        if (error == null) {
             const comparator = request.match_start ? 'startsWith' : 'includes';
             const query = request.query, query_length = query.length, result = [];
             if (request.newQuery) pos = -1;
@@ -144,8 +144,6 @@ function local_autocomplete_get() {
                 if (result.length >= 25) break;
             }
             sendResponse(result);
-        } else if (setting_up_worker) {
-            // do nothing
         } else {
             sendResponse({aliased_tag: null, name: error, images: -2});
         }
