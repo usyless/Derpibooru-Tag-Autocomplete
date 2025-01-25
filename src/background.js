@@ -125,5 +125,7 @@ function local_autocomplete_load(request, sendResponse) {
 }
 
 function local_autocomplete_complete(request, sendResponse) {
-
+    local_autocomplete_worker.onmessage = sendResponse;
+    request.type = 'query';
+    local_autocomplete_worker.postMessage(request);
 }
