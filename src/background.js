@@ -149,13 +149,6 @@ function local_autocomplete_get() {
         }
     }
 
-    class ParseError extends Error {
-        constructor(message) {
-            super(message);
-            this.name = 'ParseError';
-        }
-    }
-
     function parseCSV(csvString) {
         try {
             tags = []
