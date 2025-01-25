@@ -230,10 +230,9 @@
             });
         } else {
             timeout = DEFAULT_TIMEOUT;
-            fetchfunc = async (query, page, controller) => {
-                return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
-                            {method: "GET", signal: controller.signal})).json())['tags']
-            }
+            fetchfunc = async (query, page, controller) =>
+                (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
+                            {method: "GET", signal: controller.signal})).json())['tags'];
         }
     }
 
