@@ -12,7 +12,7 @@
     ]
 
     const Settings = { // Setting handling
-        preference: {
+        preferences: {
             match_start: false,
             special_searches: true,
             results_visible: 6,
@@ -20,8 +20,8 @@
         },
 
         loadSettings: () => new Promise(resolve => {
-            chrome.storage.local.get(['preference'], (s) => {
-                for (const setting of ['preference']) Settings[setting] = {...Settings[setting], ...s[setting]};
+            chrome.storage.local.get(['preferences'], (s) => {
+                for (const setting of ['preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
                 resolve();
             });
         }),
