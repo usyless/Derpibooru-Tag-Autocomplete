@@ -1,7 +1,7 @@
 const requestMap = {
     local_autocomplete_set: local_autocomplete_set,
-    local_autocomplete_complete: local_autocomplete_complete,
-    local_autocomplete_load: local_autocomplete_load,
+    local_autocomplete_complete: null,
+    local_autocomplete_load: null,
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -108,26 +108,80 @@ function local_autocomplete_get() {
     });
 }
 
-let local_autocomplete_worker;
-let setting_up_worker = false;
-function local_autocomplete_load(request, sendResponse) {
-    if (local_autocomplete_worker != null) sendResponse(true);
-    else if (!setting_up_worker) {
-        setting_up_worker = true;
-        local_autocomplete_worker = new Worker("/worker.js");
-        local_autocomplete_get().then((r) => {
-            local_autocomplete_worker.postMessage({type: 'data', data: r});
-            sendResponse(true);
-        });
-    } else {
-        sendResponse(false);
-    }
-}
+{
+    let tags = [], pos = -1, length, error = null;
+    let setting_up_worker = false, loaded = false
 
-function local_autocomplete_complete(request, sendResponse) {
-    local_autocomplete_worker.onmessage = (r) => {
-        sendResponse(r.data);
+    requestMap['local_autocomplete_load'] = (request, sendResponse) => {
+        if (loaded) sendResponse(true);
+        else if (!setting_up_worker) {
+            setting_up_worker = true;
+            local_autocomplete_get().then((r) => {
+                parseCSV(r);
+                length = tags.length;
+                if (length === 0) error = 'No tags CSV loaded, go to settings and load one to use local autocomplete.';
+                sendResponse(true);
+                loaded = true;
+            });
+        } else {
+            sendResponse(false);
+        }
     };
-    request.type = 'query';
-    local_autocomplete_worker.postMessage(request);
+
+    requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
+        if (error != null) {
+            const comparator = request.match_start ? 'startsWith' : 'includes';
+            const query = request.query, query_length = query.length, result = [];
+            if (request.newQuery) pos = -1;
+            for (++pos; pos < length; ++pos) {
+                const tuple = tags[pos];
+                if (query_length <= tuple[0].length && tuple[0][comparator](query)) {
+                    result.push({aliased_tag: null, name: tuple[0], images: tuple[2]});
+                } else for (const a of tuple[1]) if (query_length <= a.length && a[comparator](query)) {
+                    result.push({aliased_tag: tuple[0], name: a, images: tuple[2]});
+                    break;
+                }
+                if (result.length >= 25) break;
+            }
+            sendResponse(result);
+        } else if (setting_up_worker) {
+            // do nothing
+        } else {
+            sendResponse({aliased_tag: null, name: error, images: -2});
+        }
+    }
+
+    class ParseError extends Error {
+        constructor(message) {
+            super(message);
+            this.name = 'ParseError';
+        }
+    }
+
+    function parseCSV(csvString) {
+        try {
+            tags = []
+            const push = tags.push.bind(tags), lines = csvString.split('\n'), ll = lines.length;
+            for (let i = 0; i < ll; ++i) {
+                const values = lines[i].split(',');
+
+                if (values.length === 1 && values[0] === '') continue;
+                else if (values.length >= 2) {
+                    const aliases = [];
+
+                    for (let i = 2; i < values.length; ++i) {
+                        if (values[i] === "") break;
+                        aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
+                    }
+
+                    push([values[0].trim().toLowerCase(), aliases, values[1]]);
+                } else {
+                    throw new ParseError(i.toString());
+                }
+            }
+        } catch (e) {
+            error = (e instanceof ParseError) ? `Error parsing tags CSV at line ${Number(e.message) + 1}` :
+                `Error parsing tags CSV. Error message: ${e.message}`;
+        }
+    }
 }
