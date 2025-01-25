@@ -125,7 +125,6 @@ function local_autocomplete_load(request, sendResponse) {
 }
 
 function local_autocomplete_complete(request, sendResponse) {
-    console.log("hi", request, local_autocomplete_worker);
     local_autocomplete_worker.onmessage = (r) => {
         sendResponse(r.data);
     };
