@@ -27,11 +27,10 @@
         }),
     }
 
-    function autocomplete(input, ac_list) {
+    const autocomplete = (input, ac_list) => {
         let recievedPage = true, currentQuery, page = 1, controller = new AbortController(), timer;
-        const createListItem = listItemTemplate();
 
-        function listItemTemplate() {
+        const createListItem = (() => {
             const list = document.createElement('li'), outer_div = document.createElement('div'),
                 text_div = document.createElement('div'), number_div = document.createElement('div');
             text_div.classList.add('text-div');
@@ -55,7 +54,7 @@
                 } else newList.dataset.name = name;
                 return newList;
             }
-        }
+        })();
 
         function displayAutocompleteResults(newQuery, data) {
             if (newQuery) {
