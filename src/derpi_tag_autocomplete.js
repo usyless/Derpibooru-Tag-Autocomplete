@@ -216,8 +216,7 @@
         else return `${(number / 1000000).toFixed(1)}M`;
     }
 
-    updateFetchFunc();
-    function updateFetchFunc() {
+    const updateFetchFunc = () => {
         worker?.terminate?.();
         worker = null;
         if (Settings.preferences.local_autocomplete_enabled) {
@@ -245,27 +244,30 @@
         for (const list of document.querySelectorAll('.ac-list')) list.style.setProperty('--count', v);
     }
 
-    const inputs = [document.getElementById('q'), document.getElementById('searchform_q')];
-    for (const input of inputs) {
-        if (input != null) {
-            const form = input.parentElement, div = document.createElement('div'),
-                ac_list = document.createElement('div');
-            if (form) {
-                div.classList.add('ac', ...form.classList);
-                form.before(div);
-                div.appendChild(form);
+    Settings.loadSettings().then(() => {
+        updateFetchFunc();
+        const inputs = [document.getElementById('q'), document.getElementById('searchform_q')];
+        for (const input of inputs) {
+            if (input != null) {
+                const form = input.parentElement, div = document.createElement('div'),
+                    ac_list = document.createElement('div');
+                if (form) {
+                    div.classList.add('ac', ...form.classList);
+                    form.before(div);
+                    div.appendChild(form);
 
-                input.removeAttribute('data-ac');
-                input.autocomplete = 'off';
+                    input.removeAttribute('data-ac');
+                    input.autocomplete = 'off';
 
-                ac_list.classList.add('ac-list', 'hidden');
-                input.parentNode.parentNode.appendChild(ac_list);
+                    ac_list.classList.add('ac-list', 'hidden');
+                    input.parentNode.parentNode.appendChild(ac_list);
 
-                autocomplete(input, ac_list);
+                    autocomplete(input, ac_list);
+                }
             }
         }
-    }
-    updateListLengths();
+        updateListLengths();
+    });
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
