@@ -15,13 +15,13 @@ if (typeof browser === 'undefined') {
                 name: 'match_start',
                 description: "Match the start of the tags, rather than any match within the name of the tag",
                 default: false,
-                category: 'preference'
+                category: 'preferences'
             },
             {
                 name: 'special_searches',
                 description: 'Include special search tags such as score:, created_at:, etc',
                 default: true,
-                category: 'preference'
+                category: 'preferences'
             },
             {
                 name: 'results_visible',
@@ -29,7 +29,7 @@ if (typeof browser === 'undefined') {
                 type: 'number',
                 default: 6,
                 validate: (v) => Number(v) >= 1,
-                category: 'preference'
+                category: 'preferences'
             }
         ],
         'Local Autocomplete (Firefox Only)': [
@@ -37,7 +37,7 @@ if (typeof browser === 'undefined') {
                 name: 'local_autocomplete_enabled',
                 description: 'Enable local autocomplete',
                 default: false,
-                category: 'preference'
+                category: 'preferences'
             },
             {
                 name: 'local_autocomplete_tags',

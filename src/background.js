@@ -35,13 +35,13 @@ function migrateSettings(previousVersion) {
             } = s;
 
             await chrome.storage.local.clear();
-            const newSettings = {preference: {}, local_autocomplete_current_file_name};
+            const newSettings = {preferences: {}, local_autocomplete_current_file_name};
 
-            if (match_start != null) newSettings.preference.match_start = match_start;
-            if (special_searches != null) newSettings.preference.special_searches = special_searches;
-            if (results_visible != null) newSettings.preference.results_visible = results_visible;
+            if (match_start != null) newSettings.preferences.match_start = match_start;
+            if (special_searches != null) newSettings.preferences.special_searches = special_searches;
+            if (results_visible != null) newSettings.preferences.results_visible = results_visible;
 
-            if (local_autocomplete_enabled != null) newSettings.preference.local_autocomplete_enabled = local_autocomplete_enabled;
+            if (local_autocomplete_enabled != null) newSettings.preferences.local_autocomplete_enabled = local_autocomplete_enabled;
 
             await chrome.storage.local.set(newSettings);
 

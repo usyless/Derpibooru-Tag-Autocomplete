@@ -2,7 +2,6 @@
 
 (async () => {
     const DEFAULT_TIMEOUT = 200;
-    const Settings = await getSettings();
     const scrollEvent = new Event('scroll'), inputEvent = new Event('input');
     let fetchfunc, timeout = DEFAULT_TIMEOUT, worker, cleanQuery;
 
@@ -11,6 +10,22 @@
         'faves:', 'height:', 'id:', 'mime_type:', 'orig_sha512_hash:', 'original_format:', 'score:', 'sha512_hash:',
         'source_count:', 'source_url:', 'tag_count:', 'uploader:', 'upvotes:', 'width:', 'wilson_score:'
     ]
+
+    const Settings = { // Setting handling
+        preference: {
+            match_start: false,
+            special_searches: true,
+            results_visible: 6,
+            local_autocomplete_enabled: false,
+        },
+
+        loadSettings: () => new Promise(resolve => {
+            chrome.storage.local.get(['preference'], (s) => {
+                for (const setting of ['preference']) Settings[setting] = {...Settings[setting], ...s[setting]};
+                resolve();
+            });
+        }),
+    }
 
     function autocomplete(input, ac_list) {
         let recievedPage = true, currentQuery, page = 1, controller = new AbortController(), timer;
@@ -255,34 +270,12 @@
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
-            await Settings.loadSettings();
-            updateFetchFunc();
-            updateListLengths();
+            if (changes.hasOwnProperty('preference')) {
+                Settings.loadSettings().then(() => {
+                    updateFetchFunc();
+                    updateListLengths();
+                });
+            }
         }
     });
-
-    async function getSettings() { // Setting handling
-        class Settings {
-            preferences = {
-                match_start: false,
-                local_autocomplete_enabled: false,
-                special_searches: true,
-                results_visible: 6
-            }
-
-            async loadSettings() {
-                const settings = ['preferences'];
-                const data = await chrome.storage.local.get(...settings.map(s => Object.keys(this[s])));
-                for (const setting of settings) for (const s in this[setting]) this[setting][s] = data[s] ?? this[setting][s];
-            }
-
-            async getTags() {
-                return (await chrome.storage.local.get(['local_autocomplete_tags']))?.local_autocomplete_tags ?? '';
-            }
-        }
-
-        const set = new Settings();
-        await set.loadSettings();
-        return set;
-    }
 })();
