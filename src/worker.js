@@ -59,7 +59,7 @@ function parseCSV(csvString) {
             }
         }
     } catch (e) {
-        if (e instanceof ParseError) error = `Error parsing tags CSV at line ${Number(e.message) + 1}`;
-        else `Error parsing tags CSV. Error message: ${e.message}`;
+        error = (e instanceof ParseError) ? `Error parsing tags CSV at line ${Number(e.message) + 1}` :
+                                            `Error parsing tags CSV. Error message: ${e.message}`;
     }
 }
