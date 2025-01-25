@@ -32,7 +32,7 @@ if (typeof browser === 'undefined') {
                 category: 'preferences'
             }
         ],
-        'Local Autocomplete (Firefox Only)': [
+        'Local Autocomplete': [
             {
                 name: 'local_autocomplete_enabled',
                 description: 'Enable local autocomplete',
