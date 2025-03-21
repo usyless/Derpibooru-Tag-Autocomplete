@@ -4,6 +4,10 @@ const requestMap = {
     local_autocomplete_load: null,
 }
 
+let AUTOCOMPLETE_LOADED = false;
+let SETTING_UP_AUTOCOMPLETE = false;
+let AUTOCOMPLETE_ERROR = null;
+
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     requestMap[request.type]?.(request, sendResponse);
     return true;
@@ -93,6 +97,10 @@ function local_autocomplete_set(request, sendResponse) {
         db.transaction(['data'], 'readwrite').objectStore('data')
             .put({id: "1", data: request.data}).addEventListener('success', () => {
                 sendResponse?.(true);
+                // force a reload
+                AUTOCOMPLETE_LOADED = false;
+                SETTING_UP_AUTOCOMPLETE = false;
+                AUTOCOMPLETE_ERROR = null;
         });
     });
 }
@@ -108,19 +116,18 @@ function local_autocomplete_get() {
 }
 
 {
-    let tags = [], pos = -1, length, error = null;
-    let setting_up_worker = false, loaded = false;
+    let tags = [], pos = -1, length;
 
     requestMap['local_autocomplete_load'] = (request, sendResponse) => {
-        if (loaded) sendResponse(true);
-        else if (!setting_up_worker) {
-            setting_up_worker = true;
+        if (AUTOCOMPLETE_LOADED) sendResponse(true);
+        else if (!SETTING_UP_AUTOCOMPLETE) {
+            SETTING_UP_AUTOCOMPLETE = true;
             local_autocomplete_get().then((r) => {
                 parseCSV(r);
                 length = tags.length;
-                if (length === 0) error = 'No tags CSV loaded, go to settings and load one to use local autocomplete.';
+                if (length === 0) AUTOCOMPLETE_ERROR = 'No tags CSV loaded, go to settings and load one to use local autocomplete.';
                 sendResponse(true);
-                loaded = true;
+                AUTOCOMPLETE_LOADED = true;
             });
         } else {
             sendResponse(false);
@@ -128,7 +135,7 @@ function local_autocomplete_get() {
     };
 
     requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
-        if (error == null) {
+        if (AUTOCOMPLETE_ERROR == null) {
             const comparator = request.match_start ? 'startsWith' : 'includes',
                 query = request.query, query_length = query.length, result = [];
             if (request.newQuery) pos = -1;
@@ -144,7 +151,7 @@ function local_autocomplete_get() {
             }
             sendResponse(result);
         } else {
-            sendResponse({aliased_tag: null, name: error, images: -2});
+            sendResponse({aliased_tag: null, name: AUTOCOMPLETE_ERROR, images: -2});
         }
     }
 
@@ -166,13 +173,13 @@ function local_autocomplete_get() {
 
                     push([values[0].trim().toLowerCase(), aliases, values[1]]);
                 } else {
-                    error = `Error parsing tags CSV at line ${Number(i.toString()) + 1}`
+                    AUTOCOMPLETE_ERROR = `Error parsing tags CSV at line ${Number(i.toString()) + 1}`
                     tags = [];
                     return;
                 }
             }
         } catch (e) {
-            error = `Error parsing tags CSV. Error message: ${e.message}`;
+            AUTOCOMPLETE_ERROR = `Error parsing tags CSV. Error message: ${e.message}`;
         }
     }
 }
