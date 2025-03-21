@@ -53,24 +53,23 @@ function migrateSettings(previousVersion) {
 
 function updateLocalAutocompleteDB() {
     return new Promise((resolve) => {
-        indexedDB.open('local_autocomplete', 1)
-            .addEventListener('upgradeneeded', (event) => {
-                const db = event.target.result;
+        const db = indexedDB.open('local_autocomplete', 1);
+        db.addEventListener('upgradeneeded', (event) => {
+            const db = event.target.result;
 
-                if (event.oldVersion <= 0) {
-                    const objectStore = db.createObjectStore('data', {keyPath: 'id'});
-                    objectStore.put({id: "1", data: ""});
-                }
-
-                resolve(true);
-            });
+            if (event.oldVersion <= 0) {
+                const objectStore = db.createObjectStore('data', {keyPath: 'id'});
+                objectStore.put({id: "1", data: ""});
+            }
+        });
+        db.addEventListener('success', resolve);
     });
 }
 
 let local_autocomplete_db;
 let db_opening = false;
 const pending_db_promises = [];
-function getHistoryDB() {
+function getAutocompleteDB() {
     return new Promise((resolve) => {
         if (local_autocomplete_db != null) resolve(local_autocomplete_db);
         else if (db_opening) pending_db_promises.push(resolve);
@@ -90,7 +89,7 @@ function getHistoryDB() {
 }
 
 function local_autocomplete_set(request, sendResponse) {
-    getHistoryDB().then((db) => {
+    getAutocompleteDB().then((db) => {
         db.transaction(['data'], 'readwrite').objectStore('data')
             .put({id: "1", data: request.data}).addEventListener('success', () => {
                 sendResponse?.(true);
@@ -100,7 +99,7 @@ function local_autocomplete_set(request, sendResponse) {
 
 function local_autocomplete_get() {
     return new Promise((resolve) => {
-        getHistoryDB().then((db) => {
+        getAutocompleteDB().then((db) => {
             db.transaction(['data'], 'readonly').objectStore('data').get("1").addEventListener('success', (e) => {
                 resolve(e.target.result.data);
             });
