@@ -136,16 +136,22 @@ function local_autocomplete_get() {
         }
     };
 
+    const escapeRegex = RegExp.escape || ((str) => str.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'));
+    const getRegex = (str, match_start) =>
+        new RegExp((match_start ? '^' : '') + escapeRegex(str).replaceAll('\\*', '.*').replaceAll('\\?', '.?'));
+
     requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
         if (AUTOCOMPLETE_ERROR == null) {
-            const comparator = request.match_start ? 'startsWith' : 'includes',
-                query = request.query, query_length = query.length, result = [];
+            // remove * and ? from query length to ensure no missed results
+            const query_length = request.query.replaceAll('*', '').replaceAll('?', '').length,
+                result = [], regex = getRegex(request.query, request.match_start),
+                comparator = regex.test.bind(regex);
             if (request.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {
                 const [name, aliases, images] = tags[pos];
-                if (query_length <= name.length && name[comparator](query)) {
+                if (query_length <= name.length && comparator(name)) {
                     result.push({aliased_tag: null, name, images});
-                } else for (const a of aliases) if (query_length <= a.length && a[comparator](query)) {
+                } else for (const a of aliases) if (query_length <= a.length && comparator(a)) {
                     result.push({aliased_tag: name, name: a, images});
                     break;
                 }
