@@ -116,7 +116,7 @@ function local_autocomplete_get() {
 }
 
 {
-    let tags = [], pos = -1, length;
+    let tags = [], pos = -1, length, comparator, query_length;
 
     requestMap['local_autocomplete_load'] = (request, sendResponse) => {
         if (AUTOCOMPLETE_LOADED) sendResponse(true);
@@ -142,11 +142,13 @@ function local_autocomplete_get() {
 
     requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
         if (AUTOCOMPLETE_ERROR == null) {
-            // remove * and ? from query length to ensure no missed results
-            const query_length = request.query.replaceAll('*', '').replaceAll('?', '').length,
-                result = [], regex = getRegex(request.query, request.match_start),
-                comparator = regex.test.bind(regex);
-            if (request.newQuery) pos = -1;
+            const result = [];
+            if (request.newQuery) {
+                pos = -1;
+                comparator = RegExp.prototype.test.bind(getRegex(request.query, request.match_start));
+                // remove * and ? from query length to ensure no missed results
+                query_length = request.query.replaceAll('*', '').replaceAll('?', '').length;
+            }
             for (++pos; pos < length; ++pos) {
                 const [name, aliases, images] = tags[pos];
                 if (query_length <= name.length && comparator(name)) {
@@ -187,6 +189,6 @@ function local_autocomplete_get() {
         } catch (e) {
             return `Error parsing tags CSV. Error message: ${e.message}`;
         }
-        return tags;
+        return tags.length > 0 ? tags : 'Make sure to provide a valid tags file.';
     }
 }
