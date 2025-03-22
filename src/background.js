@@ -122,10 +122,12 @@ function local_autocomplete_get() {
         if (AUTOCOMPLETE_LOADED) sendResponse(true);
         else if (!SETTING_UP_AUTOCOMPLETE) {
             SETTING_UP_AUTOCOMPLETE = true;
-            local_autocomplete_get().then((r) => {
-                parseCSV(r);
-                length = tags.length;
-                if (length === 0) AUTOCOMPLETE_ERROR = 'No tags CSV loaded, go to settings and load one to use local autocomplete.';
+            getTags().then((t) => {
+                if (Array.isArray(t)) {
+                    tags = t;
+                    length = tags.length;
+                }
+                else AUTOCOMPLETE_ERROR = t;
                 sendResponse(true);
                 AUTOCOMPLETE_LOADED = true;
             });
@@ -140,11 +142,11 @@ function local_autocomplete_get() {
                 query = request.query, query_length = query.length, result = [];
             if (request.newQuery) pos = -1;
             for (++pos; pos < length; ++pos) {
-                const tuple = tags[pos];
-                if (query_length <= tuple[0].length && tuple[0][comparator](query)) {
-                    result.push({aliased_tag: null, name: tuple[0], images: tuple[2]});
-                } else for (const a of tuple[1]) if (query_length <= a.length && a[comparator](query)) {
-                    result.push({aliased_tag: tuple[0], name: a, images: tuple[2]});
+                const [name, aliases, images] = tags[pos];
+                if (query_length <= name.length && name[comparator](query)) {
+                    result.push({aliased_tag: null, name, images});
+                } else for (const a of aliases) if (query_length <= a.length && a[comparator](query)) {
+                    result.push({aliased_tag: name, name: a, images});
                     break;
                 }
                 if (result.length >= 25) break;
@@ -155,10 +157,10 @@ function local_autocomplete_get() {
         }
     }
 
-    function parseCSV(csvString) {
+    async function getTags() {
+        const tags = [];
         try {
-            tags = []
-            const push = tags.push.bind(tags), lines = csvString.split('\n'), ll = lines.length;
+            const push = tags.push.bind(tags), lines = (await local_autocomplete_get()).split('\n'), ll = lines.length;
             for (let i = 0; i < ll; ++i) {
                 const values = lines[i].split(',');
 
@@ -173,13 +175,12 @@ function local_autocomplete_get() {
 
                     push([values[0].trim().toLowerCase(), aliases, values[1]]);
                 } else {
-                    AUTOCOMPLETE_ERROR = `Error parsing tags CSV at line ${Number(i.toString()) + 1}`
-                    tags = [];
-                    return;
+                    return `Error parsing tags CSV at line ${Number(i.toString()) + 1}`;
                 }
             }
         } catch (e) {
-            AUTOCOMPLETE_ERROR = `Error parsing tags CSV. Error message: ${e.message}`;
+            return `Error parsing tags CSV. Error message: ${e.message}`;
         }
+        return tags;
     }
 }
