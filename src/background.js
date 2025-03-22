@@ -138,7 +138,7 @@ function local_autocomplete_get() {
 
     const escapeRegex = RegExp.escape || ((str) => str.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'));
     const getRegex = (str, match_start) =>
-        new RegExp((match_start ? '^' : '') + escapeRegex(str).replaceAll('\\*', '.*').replaceAll('\\?', '.?'));
+        new RegExp((match_start ? '^' : '') + escapeRegex(str).replaceAll('\\*', '.*').replaceAll('\\?', '.'));
 
     requestMap['local_autocomplete_complete'] = (request, sendResponse) => {
         if (AUTOCOMPLETE_ERROR == null) {
