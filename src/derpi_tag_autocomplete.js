@@ -11,6 +11,10 @@
         'source_count:', 'source_url:', 'tag_count:', 'uploader:', 'upvotes:', 'width:', 'wilson_score:'
     ]
 
+    const escapeRegex = RegExp.escape || ((str) => str.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'));
+    const getRegex = (str, match_start) =>
+        new RegExp((match_start ? '^' : '') + escapeRegex(str).replaceAll('\\*', '.*').replaceAll('\\?', '.'));
+
     const Settings = { // Setting handling
         preferences: {
             match_start: false,
@@ -40,14 +44,15 @@
 
             return (query, aliased_tag, name, count) => {
                 number_div.textContent = simplifyNumber(count);
-                const newList = list.cloneNode(true), index = name.indexOf(query),
+                const newList = list.cloneNode(true),
                     new_text_div = newList.firstChild.firstChild,
-                    strong = document.createElement('strong'), endIndex = index + query.length;
-                if (index === -1) new_text_div.appendChild(document.createTextNode(name));
-                else {
+                    strong = document.createElement('strong'), match = name.match(query);
+                if (match) {
+                    const index = match.index, endIndex = index + match[0].length;
                     strong.textContent = name.substring(index, endIndex);
                     new_text_div.append(document.createTextNode(name.substring(0, index)), strong, document.createTextNode(name.substring(endIndex)));
                 }
+                else new_text_div.appendChild(document.createTextNode(name));
                 if (aliased_tag) {
                     new_text_div.appendChild(document.createTextNode(` → ${aliased_tag}`));
                     newList.dataset.name = aliased_tag;
@@ -65,7 +70,7 @@
             if (data != null && data.length > 0) {
                 recievedPage = true;
                 ac_list.classList.remove('hidden');
-                const curr = currentQuery.current;
+                const curr = getRegex(currentQuery.current);
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
                 if (newQuery) {
                     ac_list.firstElementChild.classList.add('ac-active');
