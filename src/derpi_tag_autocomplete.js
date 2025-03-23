@@ -5,11 +5,17 @@
     const scrollEvent = new Event('scroll'), inputEvent = new Event('input');
     let fetchfunc, timeout = DEFAULT_TIMEOUT, cleanQuery;
 
+    // 0 -> text
+    // 1 -> range
     const special_searches = [
-        'created_at:', 'aspect_ratio:', 'comment_count:', 'description:', 'downvotes:', 'faved_by:',
-        'faves:', 'height:', 'id:', 'mime_type:', 'orig_sha512_hash:', 'original_format:', 'score:', 'sha512_hash:',
-        'source_count:', 'source_url:', 'tag_count:', 'uploader:', 'upvotes:', 'width:', 'wilson_score:'
-    ]
+        ["animated", 0], ["aspect_ratio", 1], ["comment_count", 1], ["created_at", 1], ["description", 0],
+        ["downvotes", 1], ["duration", 1], ["faved_by", 0], ["faves", 1], ["file_name", 0], ["first_seen_at", 1],
+        ["gallery_id", 0], ["height", 1], ["id", 1], ["mime_type", 0], ["orig_sha512_hash", 0], ["original_format", 0],
+        ["pixels", 1], ["score", 1], ["sha512_hash", 0], ["size", 1], ["source_count", 1], ["source_url", 0],
+        ["tag_count", 1], ["updated_at", 1], ["uploader", 0], ["upvotes", 1], ["width", 1], ["wilson_score", 1]
+    ], range_modifiers = [
+        ".gt", ".lt", ".gte", ".lte"
+    ];
 
     const escapeRegex = RegExp.escape || ((str) => str.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&'));
     const getRegex = (str, match_start) =>
@@ -86,8 +92,11 @@
             if (newQuery) {
                 page = 1;
                 if (Settings.preferences.special_searches) {
-                    for (const special of special_searches) if (special.startsWith(curr)) {
-                        specials.push({aliased_tag: null, name: special, images: -1});
+                    for (const [special, type] of special_searches) if (special.startsWith(curr)) {
+                        specials.push({aliased_tag: null, name: special + ":", images: -1});
+                        if (type === 1) for (const modifier of range_modifiers) {
+                            specials.push({aliased_tag: null, name: `${special}${modifier}:`, images: -1});
+                        }
                     }
                 }
             } else ++page;
