@@ -176,7 +176,7 @@ async function getDerpiCompiledTags() {
 
     modified.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
-    if ((modified === now) && curr) {
+    if ((modified.toString() === now.toString()) && Array.isArray(curr)) {
         console.log("Reusing saved db");
         return curr;
     } else {
@@ -188,7 +188,7 @@ async function getDerpiCompiledTags() {
         // get all tag and alias names
         for (let i = 0; i < num_tags; ++i) {
             const tag_length = view.getUint8(ptr++);
-            tags.push([textDecoder.decode(b.slice(ptr, ptr + tag_length)), 0, []]);
+            tags.push([textDecoder.decode(b.slice(ptr, ptr + tag_length)), [], 0]);
             ptr += tag_length;
             ptr += 1 + (view.getUint8(ptr) * 4);
         }
@@ -199,15 +199,15 @@ async function getDerpiCompiledTags() {
         for (let i = 0; i < num_tags; ++i) {
             ptr += 4;
             const count = view.getInt32(ptr, true);
-            tags[i][1] = count;
+            tags[i][2] = count;
             ptr += 4;
             if (count < 0) {
-                tags[-count - 1][2].push(tags[i][0]);
+                tags[-count - 1][1].push(tags[i][0]);
                 ++aliases_count;
             }
         }
 
-        tags.sort((a, b) => b[1] - a[1]);
+        tags.sort((a, b) => b[2] - a[2]);
         // cut off aliases
         tags.length = num_tags - aliases_count;
         derpi_autocomplete_set(tags);
@@ -215,16 +215,14 @@ async function getDerpiCompiledTags() {
     }
 }
 
-// getDerpiCompiledTags();
-
 {
-    let tags = [], pos = -1, length, comparator, query_length;
+    let tags, pos = -1, length, comparator, query_length;
 
     requestMap['local_autocomplete_load'] = (request, sendResponse) => {
         if (AUTOCOMPLETE_LOADED) sendResponse(true);
         else if (!SETTING_UP_AUTOCOMPLETE) {
             SETTING_UP_AUTOCOMPLETE = true;
-            local_autocomplete_get().then((t) => {
+            (request.local ? local_autocomplete_get : getDerpiCompiledTags)().then((t) => {
                 if (Array.isArray(t)) {
                     tags = t;
                     length = tags.length;

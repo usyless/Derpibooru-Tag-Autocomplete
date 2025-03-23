@@ -228,27 +228,26 @@
     }
 
     const updateFetchFunc = () => {
-        if (Settings.preferences.local_autocomplete_enabled) {
-            timeout = 0;
-            fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
-                chrome.runtime.sendMessage({type: 'local_autocomplete_load'}).then((r) => {
-                    if (r) {
-                        chrome.runtime.sendMessage({
-                            type: 'local_autocomplete_complete', query, newQuery: page === 1,
-                            match_start: Settings.preferences.match_start
-                        }).then((r) => {
-                            if (controller.signal.aborted) reject('Autocomplete Cancelled');
-                            else resolve(r);
-                        });
-                    } else reject('Autocomplete loading, please wait.');
-                });
+        timeout = 0;
+        fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}).then((r) => {
+                if (r) {
+                    chrome.runtime.sendMessage({
+                        type: 'local_autocomplete_complete', query, newQuery: page === 1,
+                        match_start: Settings.preferences.match_start
+                    }).then((r) => {
+                        if (controller.signal.aborted) reject('Autocomplete Cancelled');
+                        else resolve(r);
+                    });
+                } else reject('Autocomplete loading, please wait.');
             });
-        } else {
-            timeout = DEFAULT_TIMEOUT;
-            fetchfunc = async (query, page, controller) =>
-                (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
-                            {method: "GET", signal: controller.signal})).json())['tags'];
-        }
+        });
+        // } else {
+        //     timeout = DEFAULT_TIMEOUT;
+        //     fetchfunc = async (query, page, controller) =>
+        //         (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
+        //                     {method: "GET", signal: controller.signal})).json())['tags'];
+        // }
     }
 
     const updateListLengths = () => {
