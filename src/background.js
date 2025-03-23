@@ -174,6 +174,8 @@ async function getDerpiCompiledTags() {
         modified = new Date(r.headers.get('last-modified')),
         curr = await derpi_autocomplete_get();
 
+    if (!r.ok) return [];
+
     modified.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
     if ((modified.toISOString() === now.toISOString()) && Array.isArray(curr)) {
