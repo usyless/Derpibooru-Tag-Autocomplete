@@ -28,7 +28,7 @@ function versionBelowGiven(previousVersion, maxVersion) {
     return Number(previousVersion.padEnd(length, '0')) < Number(maxVersion.padEnd(length, '0'));
 }
 
-function migrateSettings(previousVersion) {
+async function migrateSettings(previousVersion) {
     // 1.2.6 is settings migrate update
     if (versionBelowGiven(previousVersion, '1.2.6')) {
         console.log("Migrating settings to new format");
@@ -52,6 +52,11 @@ function migrateSettings(previousVersion) {
 
             await local_autocomplete_set({data: local_autocomplete_tags ?? ""});
         });
+    }
+
+    if (versionBelowGiven(previousVersion, '1.2.7')) {
+        // force it to be parsed
+        await local_autocomplete_set({data: await local_autocomplete_get()});
     }
 }
 
@@ -95,7 +100,7 @@ function getAutocompleteDB() {
 function local_autocomplete_set(request, sendResponse) {
     getAutocompleteDB().then((db) => {
         db.transaction(['data'], 'readwrite').objectStore('data')
-            .put({id: "1", data: request.data}).addEventListener('success', () => {
+            .put({id: "1", data: parseCSV(request.data)}).addEventListener('success', () => {
                 sendResponse?.(true);
                 // force a reload
                 AUTOCOMPLETE_LOADED = false;
@@ -103,6 +108,33 @@ function local_autocomplete_set(request, sendResponse) {
                 AUTOCOMPLETE_ERROR = null;
         });
     });
+}
+
+function parseCSV(csv) {
+    const tags = [];
+    try {
+        const push = tags.push.bind(tags), lines = csv.split('\n'), ll = lines.length;
+        for (let i = 0; i < ll; ++i) {
+            const values = lines[i].split(',');
+
+            if (values.length === 1 && values[0] === '') continue;
+            else if (values.length >= 2) {
+                const aliases = [];
+
+                for (let i = 2; i < values.length; ++i) {
+                    if (values[i] === "") break;
+                    aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
+                }
+
+                push([values[0].trim().toLowerCase(), aliases, values[1]]);
+            } else {
+                return `Error parsing tags CSV at line ${Number(i.toString()) + 1}`;
+            }
+        }
+    } catch (e) {
+        return `Error parsing tags CSV. Error message: ${e.message}`;
+    }
+    return tags.length > 0 ? tags : 'Make sure to provide a valid tags file.';
 }
 
 function local_autocomplete_get() {
@@ -122,7 +154,7 @@ function local_autocomplete_get() {
         if (AUTOCOMPLETE_LOADED) sendResponse(true);
         else if (!SETTING_UP_AUTOCOMPLETE) {
             SETTING_UP_AUTOCOMPLETE = true;
-            getTags().then((t) => {
+            local_autocomplete_get().then((t) => {
                 if (Array.isArray(t)) {
                     tags = t;
                     length = tags.length;
@@ -163,32 +195,5 @@ function local_autocomplete_get() {
         } else {
             sendResponse({aliased_tag: null, name: AUTOCOMPLETE_ERROR, images: -2});
         }
-    }
-
-    async function getTags() {
-        const tags = [];
-        try {
-            const push = tags.push.bind(tags), lines = (await local_autocomplete_get()).split('\n'), ll = lines.length;
-            for (let i = 0; i < ll; ++i) {
-                const values = lines[i].split(',');
-
-                if (values.length === 1 && values[0] === '') continue;
-                else if (values.length >= 2) {
-                    const aliases = [];
-
-                    for (let i = 2; i < values.length; ++i) {
-                        if (values[i] === "") break;
-                        aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
-                    }
-
-                    push([values[0].trim().toLowerCase(), aliases, values[1]]);
-                } else {
-                    return `Error parsing tags CSV at line ${Number(i.toString()) + 1}`;
-                }
-            }
-        } catch (e) {
-            return `Error parsing tags CSV. Error message: ${e.message}`;
-        }
-        return tags.length > 0 ? tags : 'Make sure to provide a valid tags file.';
     }
 }
