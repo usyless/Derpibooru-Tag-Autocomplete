@@ -30,12 +30,18 @@ if (typeof browser === 'undefined') {
                 default: 6,
                 validate: (v) => Number(v) >= 1,
                 category: 'preferences'
+            },
+            {
+                name: 'api_fallback',
+                description: "Fallback to using the Derpibooru API for results when a result is not found in the compiled tags list from Derpibooru",
+                default: true,
+                category: 'preferences'
             }
         ],
         'Local Autocomplete': [
             {
                 name: 'local_autocomplete_enabled',
-                description: 'Enable local autocomplete',
+                description: 'Enable local autocomplete from custom tags csv (fully disables api calls)',
                 default: false,
                 category: 'preferences'
             },

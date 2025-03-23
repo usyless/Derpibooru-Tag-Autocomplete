@@ -27,6 +27,7 @@
             special_searches: true,
             results_visible: 6,
             local_autocomplete_enabled: false,
+            api_fallback: true,
         },
 
         loadSettings: () => new Promise(resolve => {

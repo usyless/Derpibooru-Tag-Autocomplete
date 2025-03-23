@@ -62,13 +62,18 @@ async function migrateSettings(previousVersion) {
 
 function updateLocalAutocompleteDB() {
     return new Promise((resolve) => {
-        const db = indexedDB.open('local_autocomplete', 1);
+        const db = indexedDB.open('local_autocomplete', 2);
         db.addEventListener('upgradeneeded', (event) => {
             const db = event.target.result;
 
             if (event.oldVersion <= 0) {
                 const objectStore = db.createObjectStore('data', {keyPath: 'id'});
                 objectStore.put({id: "1", data: ""});
+            }
+
+            if (event.oldVersion <= 1) {
+                const objectStore = event.target.transaction.objectStore('data');
+                objectStore.put({id: "2", data: ""});
             }
         });
         db.addEventListener('success', resolve);
@@ -84,7 +89,7 @@ function getAutocompleteDB() {
         else if (db_opening) pending_db_promises.push(resolve);
         else {
             db_opening = true;
-            indexedDB.open('local_autocomplete', 1)
+            indexedDB.open('local_autocomplete', 2)
                 .addEventListener('success', (e) => {
                     local_autocomplete_db = e.target.result;
                     db_opening = false;
@@ -146,6 +151,71 @@ function local_autocomplete_get() {
         });
     });
 }
+
+function derpi_autocomplete_set(data) {
+    getAutocompleteDB().then((db) => {
+        db.transaction(['data'], 'readwrite').objectStore('data').put({id: "2", data});
+    });
+}
+
+function derpi_autocomplete_get() {
+    return new Promise((resolve) => {
+        getAutocompleteDB().then((db) => {
+            db.transaction(['data'], 'readonly').objectStore('data').get("2").addEventListener('success', (e) => {
+                resolve(e.target.result.data);
+            });
+        });
+    });
+}
+
+async function getDerpiCompiledTags() {
+    const now = new Date(),
+        r = await fetch(`https://derpibooru.org/autocomplete/compiled?vsn=2&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
+        modified = new Date(r.headers.get('last-modified')),
+        curr = await derpi_autocomplete_get();
+
+    modified.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    if ((modified === now) && curr) {
+        console.log("Reusing saved db");
+        return curr;
+    } else {
+        console.log("Loading new db");
+        const b = await r.arrayBuffer(), view = new DataView(b), tags = [],
+            num_tags = view.getUint32(b.byteLength - 4, true),
+            textDecoder = new TextDecoder('utf-8');
+        let ptr = 0;
+        // get all tag and alias names
+        for (let i = 0; i < num_tags; ++i) {
+            const tag_length = view.getUint8(ptr++);
+            tags.push([textDecoder.decode(b.slice(ptr, ptr + tag_length)), 0, []]);
+            ptr += tag_length;
+            ptr += 1 + (view.getUint8(ptr) * 4);
+        }
+
+        // tag references
+        ptr = view.getUint32(b.byteLength - 8, true);
+        let aliases_count = 0;
+        for (let i = 0; i < num_tags; ++i) {
+            ptr += 4;
+            const count = view.getInt32(ptr, true);
+            tags[i][1] = count;
+            ptr += 4;
+            if (count < 0) {
+                tags[-count - 1][2].push(tags[i][0]);
+                ++aliases_count;
+            }
+        }
+
+        tags.sort((a, b) => b[1] - a[1]);
+        // cut off aliases
+        tags.length = num_tags - aliases_count;
+        derpi_autocomplete_set(tags);
+        return tags;
+    }
+}
+
+// getDerpiCompiledTags();
 
 {
     let tags = [], pos = -1, length, comparator, query_length;
