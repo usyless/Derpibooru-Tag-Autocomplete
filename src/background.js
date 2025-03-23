@@ -176,7 +176,7 @@ async function getDerpiCompiledTags() {
 
     modified.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
-    if ((modified.toString() === now.toString()) && Array.isArray(curr)) {
+    if ((modified.toISOString() === now.toISOString()) && Array.isArray(curr)) {
         console.log("Reusing saved db");
         return curr;
     } else {
