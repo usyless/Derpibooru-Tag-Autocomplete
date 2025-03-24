@@ -207,7 +207,7 @@ async function getDerpiCompiledTags() {
             console.log("Loading new db");
             const b = await r.arrayBuffer(), view = new DataView(b),
                 num_tags = view.getUint32(b.byteLength - 4, true),
-                tags = Array.from({length: num_tags}, () => [undefined, [], 0]),
+                tags = Array.from({length: num_tags}, () => [undefined, undefined, 0]),
                 textDecoder = new TextDecoder('utf-8');
             if (view.getUint32(b.byteLength - 12, true) !== DERPI_COMPILED_VERSION) return [];
             let ptr = 0, ptr_ref = view.getUint32(b.byteLength - 8, true), aliases_count = 0;
@@ -215,15 +215,18 @@ async function getDerpiCompiledTags() {
             for (let i = 0; i < num_tags; ++i) {
                 ptr_ref += 4;
                 const tag_length = view.getUint8(ptr++),
-                    count = view.getInt32(ptr_ref, true);
-                tags[i][0] = textDecoder.decode(new Uint8Array(b, ptr, tag_length));
-                tags[i][2] = count;
+                    count = view.getInt32(ptr_ref, true),
+                    tag = tags[i];
+                tag[0] = textDecoder.decode(new Uint8Array(b, ptr, tag_length));
+                tag[2] = count;
                 ptr_ref += 4;
                 ptr += tag_length;
                 ptr += 1 + (view.getUint8(ptr) * 4);
 
                 if (count < 0) {
-                    tags[-count - 1][1].push(tags[i][0]);
+                    let aliases = tags[-count - 1];
+                    aliases ||= [];
+                    aliases.push(tag[0]);
                     ++aliases_count;
                 }
             }
@@ -279,7 +282,7 @@ async function getDerpiCompiledTags() {
                 const [name, aliases, images] = tags[pos];
                 if (query_length <= name.length && comparator(name)) {
                     result.push({aliased_tag: null, name, images});
-                } else for (const a of aliases) if (query_length <= a.length && comparator(a)) {
+                } else if (aliases) for (const a of aliases) if (query_length <= a.length && comparator(a)) {
                     result.push({aliased_tag: name, name: a, images});
                     break;
                 }
