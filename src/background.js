@@ -207,7 +207,7 @@ async function getDerpiCompiledTags() {
             console.log("Loading new db");
             const b = await r.arrayBuffer(), view = new DataView(b),
                 num_tags = view.getUint32(b.byteLength - 4, true),
-                tags = Array.from({length: num_tags}, () => ["", [], 0]),
+                tags = Array.from({length: num_tags}, () => [undefined, [], 0]),
                 textDecoder = new TextDecoder('utf-8');
             if (view.getUint32(b.byteLength - 12, true) !== DERPI_COMPILED_VERSION) return [];
             let ptr = 0, ptr_ref = view.getUint32(b.byteLength - 8, true), aliases_count = 0;
