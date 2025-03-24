@@ -136,7 +136,7 @@ function parseCSV(csv) {
                     aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
                 }
 
-                push([values[0].trim().toLowerCase(), aliases, values[1]]);
+                push([values[0].trim().toLowerCase(), aliases.length > 0 ? aliases : undefined, values[1]]);
             } else {
                 return `Error parsing tags CSV at line ${Number(i.toString()) + 1}`;
             }
