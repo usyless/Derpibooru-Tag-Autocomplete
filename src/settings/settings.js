@@ -1,7 +1,7 @@
 'use strict';
 
-if (typeof browser === 'undefined') {
-    var browser = chrome;
+if (typeof this.browser === 'undefined') {
+    this.browser = chrome;
 }
 
 (() => {
@@ -91,9 +91,26 @@ if (typeof browser === 'undefined') {
                 class: ['warning'],
                 onclick: () => {
                     if (confirm('Are you sure you want to RESET this extensions settings?')) {
+                        const local_autocomplete_current_file_name = document.getElementById('local_autocomplete_current_file_name').textContent;
                         clearStorage();
+                        setStorage({local_autocomplete_current_file_name});
+                        alert("Successfully reset all settings, except autocomplete caches");
                         window.location.reload();
                     }
+                }
+            },
+            {
+                name: 'reset_local_autocomplete',
+                description: '',
+                type: 'button',
+                button: 'Clear all stored local autocomplete caches',
+                class: ['warning'],
+                onclick: () => {
+                    browser.runtime.sendMessage({type: 'clear_all_autocomplete'}).then(() => {
+                        alert("Successfully cleared all local autocomplete caches");
+                        window.location.reload();
+                    });
+                    setStorage({'local_autocomplete_current_file_name': null});
                 }
             }
         ]

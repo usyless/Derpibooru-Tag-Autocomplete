@@ -2,6 +2,7 @@ const requestMap = {
     local_autocomplete_set: local_autocomplete_set,
     local_autocomplete_complete: null,
     local_autocomplete_load: null,
+    clear_all_autocomplete: clear_all_autocomplete,
 }
 
 let AUTOCOMPLETE_LOADED = false;
@@ -148,6 +149,18 @@ function local_autocomplete_get() {
             db.transaction(['data'], 'readonly').objectStore('data').get("1").addEventListener('success', (e) => {
                 resolve(e.target.result.data);
             });
+        });
+    });
+}
+
+function clear_all_autocomplete(_, sendResponse) {
+    getAutocompleteDB().then((db) => {
+        const t = db.transaction(['data'], 'readwrite');
+        const os = t.objectStore('data');
+        os.put({id: "1", data: ""});
+        os.put({id: "2", data: ""});
+        t.addEventListener('complete', () => {
+            sendResponse?.(true);
         });
     });
 }
