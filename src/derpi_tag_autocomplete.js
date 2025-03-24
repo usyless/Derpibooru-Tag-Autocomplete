@@ -76,7 +76,7 @@
             if (data != null && data.length > 0) {
                 recievedPage = true;
                 ac_list.classList.remove('hidden');
-                const curr = getRegex(currentQuery.current);
+                const curr = currentQuery.regex;
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
                 if (newQuery) {
                     ac_list.firstElementChild.classList.add('ac-active');
@@ -214,7 +214,8 @@
                     break;
                 }
             }
-            return {current: query.trimStart().toLowerCase(), parts, splitters, i, ignoredPrefix, lengthCounter, uncleaned: query.trimStart()};
+            const current = query.trimStart().toLowerCase();
+            return {current, parts, splitters, i, ignoredPrefix, lengthCounter, uncleaned: query.trimStart(), regex: getRegex(current)};
         };
     }
 
