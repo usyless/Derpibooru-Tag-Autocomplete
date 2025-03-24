@@ -2,7 +2,7 @@
 
 (async () => {
     const scrollEvent = new Event('scroll');
-    let fetchfunc, cleanQuery;
+    let fetchfunc, cleanQuery, apifetchfunc;
 
     // 0 -> text
     // 1 -> range
@@ -38,7 +38,7 @@
     }
 
     const autocomplete = (input, ac_list) => {
-        let recievedPage = true, currentQuery, page = 1, controller = new AbortController();
+        let recievedPage = true, localOver = false, currentQuery, page = 1, controller = new AbortController();
 
         const createListItem = (() => {
             const list = document.createElement('li'), outer_div = document.createElement('div'),
@@ -68,6 +68,7 @@
         })();
 
         function displayAutocompleteResults(newQuery, data) {
+            console.log(localOver, data);
             if (newQuery) {
                 closeList(false);
                 document.addEventListener('click', closeList, {once: true});
@@ -90,6 +91,7 @@
             recievedPage = false;
             const curr = currentQuery.current, specials = [];
             if (newQuery) {
+                localOver = false;
                 page = 1;
                 if (Settings.preferences.special_searches) {
                     for (const [special, type] of special_searches) if (special.startsWith(curr)) {
@@ -100,7 +102,19 @@
                     }
                 }
             } else ++page;
-            displayAutocompleteResults(newQuery, specials.concat(await fetchfunc(curr, page, controller)));
+            if (!localOver) {
+                const localResults = await fetchfunc(curr, page, controller);
+                displayAutocompleteResults(newQuery, specials.concat(localResults));
+                // fallback to api if not fully local and api fallback enabled
+                if (localResults.length < 25) {
+                    localOver = true;
+                    recievedPage = true;
+                }
+            }
+            if (localOver && !Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
+                recievedPage = false;
+                displayAutocompleteResults(false, await apifetchfunc(curr, page - 1, controller));
+            }
         }
 
         input.addEventListener('focus', () => {
@@ -239,9 +253,9 @@
     });
 
 
-    //     fetchfunc = async (query, page, controller) =>
-    //         (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
-    //                     {method: "GET", signal: controller.signal})).json())['tags'];
+    apifetchfunc = async (query, page, controller) =>
+        (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
+                    {method: "GET", signal: controller.signal})).json())['tags'];
 
     const updateListLengths = () => {
         const v = Number(Settings.preferences.results_visible);
