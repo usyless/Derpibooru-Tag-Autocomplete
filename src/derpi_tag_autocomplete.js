@@ -299,6 +299,7 @@
 
 
     apifetchfunc = async (query, page, controller) => {
+        console.log(`Making API Request for "${query}" with page ${page}`);
         return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
             {method: "GET", signal: controller.signal})).json())['tags'];
     }
