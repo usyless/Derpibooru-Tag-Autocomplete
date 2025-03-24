@@ -9,6 +9,12 @@ let AUTOCOMPLETE_LOADED = false;
 let SETTING_UP_AUTOCOMPLETE = false;
 let AUTOCOMPLETE_ERROR = null;
 
+const reload_autocomplete = () => {
+    AUTOCOMPLETE_LOADED = false;
+    SETTING_UP_AUTOCOMPLETE = false;
+    AUTOCOMPLETE_ERROR = null;
+}
+
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     requestMap[request.type]?.(request, sendResponse);
     return true;
@@ -109,9 +115,7 @@ function local_autocomplete_set(request, sendResponse) {
             .put({id: "1", data: parseCSV(request.data)}).addEventListener('success', () => {
                 sendResponse?.(true);
                 // force a reload
-                AUTOCOMPLETE_LOADED = false;
-                SETTING_UP_AUTOCOMPLETE = false;
-                AUTOCOMPLETE_ERROR = null;
+                reload_autocomplete();
         });
     });
 }
@@ -161,6 +165,7 @@ function clear_all_autocomplete(_, sendResponse) {
         os.put({id: "2", data: ""});
         t.addEventListener('complete', () => {
             sendResponse?.(true);
+            reload_autocomplete();
         });
     });
 }
@@ -236,12 +241,7 @@ async function getDerpiCompiledTags() {
     let tags, pos = -1, length, comparator, query_length, local = false;
 
     requestMap['local_autocomplete_load'] = (request, sendResponse) => {
-        if (request.local !== local) {
-            // force reload
-            AUTOCOMPLETE_LOADED = false;
-            SETTING_UP_AUTOCOMPLETE = false;
-            AUTOCOMPLETE_ERROR = null;
-        }
+        if (request.local !== local) reload_autocomplete();
         if (AUTOCOMPLETE_LOADED) sendResponse(true);
         else if (!SETTING_UP_AUTOCOMPLETE) {
             SETTING_UP_AUTOCOMPLETE = true;
