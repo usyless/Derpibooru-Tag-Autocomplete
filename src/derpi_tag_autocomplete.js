@@ -122,7 +122,7 @@
                         firstAPI = false;
                         if (apiResults?.length > 0) {
                             const lastElem = ac_list?.lastElementChild,
-                                lastText = lastElem?.querySelector('.text-div')?.textContent,
+                                lastText = lastElem?.querySelector('.text-div')?.textContent?.split(' →')?.[0],
                                 lastCount = +lastElem?.querySelector('.number-div').textContent;
 
                             let pageCopy = page, extras = 2;
