@@ -38,8 +38,8 @@
     }
 
     const autocomplete = (input, ac_list) => {
-        let recievedPage = true, localOver = false, currentQuery, page = 1, controller = new AbortController(),
-            lastApiCall = 0, timer;
+        let recievedPage = true, localOver = false, currentQuery, controller = new AbortController(),
+            lastApiCall = 0, timer, items = 0, page = 1, firstAPI = false;
 
         const createListItem = (() => {
             const list = document.createElement('li'), outer_div = document.createElement('div'),
@@ -69,7 +69,6 @@
         })();
 
         function displayAutocompleteResults(newQuery, data) {
-            console.log(localOver, data);
             if (newQuery) {
                 closeList(false);
                 document.addEventListener('click', closeList, {once: true});
@@ -94,6 +93,7 @@
             if (newQuery) {
                 localOver = false;
                 page = 1;
+                items = 0;
                 if (Settings.preferences.special_searches) {
                     for (const [special, type] of special_searches) if (special.startsWith(curr)) {
                         specials.push({aliased_tag: null, name: special + ":", images: -1});
@@ -105,16 +105,34 @@
             } else ++page;
             if (!localOver) {
                 const localResults = await fetchfunc(curr, page, controller);
+                items += localResults.length;
                 // fallback to api if not fully local and api fallback enabled
                 if (localResults.length < 25) {
                     localOver = true;
+                    firstAPI = true;
                     recievedPage = true;
+                    page = Math.floor(items / 25); // no + 1 as it's handled by the above else case
                 }
                 displayAutocompleteResults(newQuery, specials.concat(localResults));
             } else if (!Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
                 clearTimeout(timer);
                 const f = async () => {
-                    displayAutocompleteResults(newQuery, await apifetchfunc(curr, page - 1, controller));
+                    let apiResults;
+                    if (page > 1 && firstAPI) {
+                        const [res1, res2] = await Promise.all([apifetchfunc(curr, page - 1, controller), apifetchfunc(curr, page, controller)]);
+                        apiResults = res1.concat(res2);
+                    } else {
+                        apiResults = await apifetchfunc(curr, page, controller);
+                    }
+                    if (firstAPI) {
+                        const last = ac_list?.lastElementChild?.querySelector('.text-div')?.textContent;
+                        for (let i = 0; i < apiResults.length; ++i) if (apiResults[i].name === last) {
+                            apiResults.splice(0, i + 1);
+                            break;
+                        }
+                        firstAPI = false;
+                    }
+                    displayAutocompleteResults(newQuery, apiResults);
                     lastApiCall = performance.now();
                 };
                 if (performance.now() - lastApiCall > API_TIMEOUT) f();
