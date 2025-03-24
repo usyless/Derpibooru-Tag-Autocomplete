@@ -61,6 +61,7 @@
                 }
                 else new_text_div.appendChild(document.createTextNode(name));
                 if (aliased_tag) {
+                    // .replaceAll('-colon-', ':').replaceAll('+', ' '), will cause issues however
                     new_text_div.appendChild(document.createTextNode(` → ${aliased_tag}`));
                     newList.dataset.name = aliased_tag;
                 } else newList.dataset.name = name;
