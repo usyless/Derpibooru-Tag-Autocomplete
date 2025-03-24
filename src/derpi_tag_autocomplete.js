@@ -1,7 +1,7 @@
 'use strict';
 
 (async () => {
-    const scrollEvent = new Event('scroll'), inputEvent = new Event('input');
+    const scrollEvent = new Event('scroll');
     let fetchfunc, cleanQuery;
 
     // 0 -> text
@@ -178,7 +178,6 @@
                         for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
                         input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
 
-                        input.dispatchEvent(inputEvent);
                         input.focus();
                         clearTimeout(timer);
                         closeList();
