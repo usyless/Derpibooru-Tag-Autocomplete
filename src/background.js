@@ -218,13 +218,20 @@ async function getDerpiCompiledTags() {
 }
 
 {
-    let tags, pos = -1, length, comparator, query_length;
+    let tags, pos = -1, length, comparator, query_length, local = false;
 
     requestMap['local_autocomplete_load'] = (request, sendResponse) => {
+        if (request.local !== local) {
+            // force reload
+            AUTOCOMPLETE_LOADED = false;
+            SETTING_UP_AUTOCOMPLETE = false;
+            AUTOCOMPLETE_ERROR = null;
+        }
         if (AUTOCOMPLETE_LOADED) sendResponse(true);
         else if (!SETTING_UP_AUTOCOMPLETE) {
             SETTING_UP_AUTOCOMPLETE = true;
-            (request.local ? local_autocomplete_get : getDerpiCompiledTags)().then((t) => {
+            local = request.local;
+            (local ? local_autocomplete_get : getDerpiCompiledTags)().then((t) => {
                 if (Array.isArray(t)) {
                     tags = t;
                     length = tags.length;
