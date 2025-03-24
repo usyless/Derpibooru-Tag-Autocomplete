@@ -136,7 +136,7 @@
                     lastApiCall = performance.now();
                 };
                 if (performance.now() - lastApiCall > API_TIMEOUT) f();
-                else setTimeout(f, API_TIMEOUT);
+                else timer = setTimeout(f, API_TIMEOUT);
             }
         }
 
