@@ -276,11 +276,7 @@
 
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local') {
-            if (changes.hasOwnProperty('preferences')) {
-                Settings.loadSettings().then(() => {
-                    updateListLengths();
-                });
-            }
+            if (changes.hasOwnProperty('preferences')) Settings.loadSettings().then(updateListLengths);
         }
     });
 })();
