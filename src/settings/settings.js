@@ -33,7 +33,7 @@ if (typeof browser === 'undefined') {
             },
             {
                 name: 'api_fallback',
-                description: "Fallback to using the Derpibooru API for results when a result is not found in the compiled tags list from Derpibooru",
+                description: "Fallback to using the Derpibooru API for results (Experimental)",
                 default: true,
                 category: 'preferences'
             }
