@@ -188,52 +188,54 @@ function derpi_autocomplete_get() {
 
 const DERPI_COMPILED_VERSION = 2;
 async function getDerpiCompiledTags() {
-    const now = new Date(),
-        r = await fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
-        modified = new Date(r.headers.get('last-modified')),
-        curr = await derpi_autocomplete_get();
+    try {
+        const now = new Date();
+        const [r, curr] = await Promise.all([
+            fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
+            derpi_autocomplete_get()
+        ]);
+        const modified = new Date(r.headers.get('last-modified'));
 
-    if (!r.ok) return [];
+        if (!r.ok) return [];
 
-    modified.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    if ((modified.toISOString() === now.toISOString()) && Array.isArray(curr)) {
-        console.log("Reusing saved db");
-        return curr;
-    } else {
-        console.log("Loading new db");
-        const b = await r.arrayBuffer(), view = new DataView(b), tags = [],
-            num_tags = view.getUint32(b.byteLength - 4, true),
-            textDecoder = new TextDecoder('utf-8');
-        if (view.getUint32(b.byteLength - 12, true) !== DERPI_COMPILED_VERSION) return [];
-        let ptr = 0;
-        // get all tag and alias names
-        for (let i = 0; i < num_tags; ++i) {
-            const tag_length = view.getUint8(ptr++);
-            tags.push([textDecoder.decode(new Uint8Array(b, ptr, tag_length)), [], 0]);
-            ptr += tag_length;
-            ptr += 1 + (view.getUint8(ptr) * 4);
-        }
+        modified.setHours(0, 0, 0, 0);
+        now.setHours(0, 0, 0, 0);
+        if ((modified.toISOString() === now.toISOString()) && Array.isArray(curr)) {
+            console.log("Reusing saved db");
+            return curr;
+        } else {
+            console.log("Loading new db");
+            const b = await r.arrayBuffer(), view = new DataView(b),
+                num_tags = view.getUint32(b.byteLength - 4, true),
+                tags = Array.from({length: num_tags}, () => ["", [], 0]),
+                textDecoder = new TextDecoder('utf-8');
+            if (view.getUint32(b.byteLength - 12, true) !== DERPI_COMPILED_VERSION) return [];
+            let ptr = 0, ptr_ref = view.getUint32(b.byteLength - 8, true), aliases_count = 0;
+            // get all tag and alias names
+            for (let i = 0; i < num_tags; ++i) {
+                ptr_ref += 4;
+                const tag_length = view.getUint8(ptr++),
+                    count = view.getInt32(ptr_ref, true);
+                tags[i][0] = textDecoder.decode(new Uint8Array(b, ptr, tag_length));
+                tags[i][2] = count;
+                ptr_ref += 4;
+                ptr += tag_length;
+                ptr += 1 + (view.getUint8(ptr) * 4);
 
-        // tag references
-        ptr = view.getUint32(b.byteLength - 8, true);
-        let aliases_count = 0;
-        for (let i = 0; i < num_tags; ++i) {
-            ptr += 4;
-            const count = view.getInt32(ptr, true);
-            tags[i][2] = count;
-            ptr += 4;
-            if (count < 0) {
-                tags[-count - 1][1].push(tags[i][0]);
-                ++aliases_count;
+                if (count < 0) {
+                    tags[-count - 1][1].push(tags[i][0]);
+                    ++aliases_count;
+                }
             }
-        }
 
-        tags.sort((a, b) => b[2] - a[2]);
-        // cut off aliases
-        tags.length = num_tags - aliases_count;
-        derpi_autocomplete_set(tags);
-        return tags;
+            tags.sort((a, b) => b[2] - a[2]);
+            // cut off aliases
+            tags.length = num_tags - aliases_count;
+            derpi_autocomplete_set(tags);
+            return tags;
+        }
+    } catch {
+        return [];
     }
 }
 
