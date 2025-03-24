@@ -224,9 +224,7 @@ async function getDerpiCompiledTags() {
                 ptr += 1 + (view.getUint8(ptr) * 4);
 
                 if (count < 0) {
-                    let aliases = tags[-count - 1];
-                    aliases ||= [];
-                    aliases.push(tag[0]);
+                    (tags[-count - 1][1] ??= []).push(tag[0]);
                     ++aliases_count;
                 }
             }
