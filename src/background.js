@@ -168,9 +168,10 @@ function derpi_autocomplete_get() {
     });
 }
 
+const DERPI_COMPILED_VERSION = 2;
 async function getDerpiCompiledTags() {
     const now = new Date(),
-        r = await fetch(`https://derpibooru.org/autocomplete/compiled?vsn=2&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
+        r = await fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
         modified = new Date(r.headers.get('last-modified')),
         curr = await derpi_autocomplete_get();
 
@@ -186,6 +187,7 @@ async function getDerpiCompiledTags() {
         const b = await r.arrayBuffer(), view = new DataView(b), tags = [],
             num_tags = view.getUint32(b.byteLength - 4, true),
             textDecoder = new TextDecoder('utf-8');
+        if (view.getUint32(b.byteLength - 12, true) !== DERPI_COMPILED_VERSION) return [];
         let ptr = 0;
         // get all tag and alias names
         for (let i = 0; i < num_tags; ++i) {
