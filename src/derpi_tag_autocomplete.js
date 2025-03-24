@@ -1,9 +1,8 @@
 'use strict';
 
 (async () => {
-    const DEFAULT_TIMEOUT = 200;
     const scrollEvent = new Event('scroll'), inputEvent = new Event('input');
-    let fetchfunc, timeout = DEFAULT_TIMEOUT, cleanQuery;
+    let fetchfunc, cleanQuery;
 
     // 0 -> text
     // 1 -> range
@@ -105,7 +104,7 @@
         }
 
         input.addEventListener('focus', () => {
-            if (Settings.preferences.local_autocomplete_enabled) chrome.runtime.sendMessage({type: 'local_autocomplete_load'});
+            chrome.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled});
         });
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
@@ -119,7 +118,7 @@
                 controller = new AbortController();
                 currentQuery = newQuery;
                 if (currentQuery.current.length <= 0) closeList();
-                else timer = setTimeout(getResults, timeout, true);
+                else getResults(true);
             }
         }
 
@@ -227,28 +226,24 @@
         else return `${(number / 1000000).toFixed(1)}M`;
     }
 
-    const updateFetchFunc = () => {
-        timeout = 0;
-        fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}).then((r) => {
-                if (r) {
-                    chrome.runtime.sendMessage({
-                        type: 'local_autocomplete_complete', query, newQuery: page === 1,
-                        match_start: Settings.preferences.match_start
-                    }).then((r) => {
-                        if (controller.signal.aborted) reject('Autocomplete Cancelled');
-                        else resolve(r);
-                    });
-                } else reject('Autocomplete loading, please wait.');
-            });
+    fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}).then((r) => {
+            if (r) {
+                chrome.runtime.sendMessage({
+                    type: 'local_autocomplete_complete', query, newQuery: page === 1,
+                    match_start: Settings.preferences.match_start
+                }).then((r) => {
+                    if (controller.signal.aborted) reject('Autocomplete Cancelled');
+                    else resolve(r);
+                });
+            } else reject('Autocomplete loading, please wait.');
         });
-        // } else {
-        //     timeout = DEFAULT_TIMEOUT;
-        //     fetchfunc = async (query, page, controller) =>
-        //         (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
-        //                     {method: "GET", signal: controller.signal})).json())['tags'];
-        // }
-    }
+    });
+
+
+    //     fetchfunc = async (query, page, controller) =>
+    //         (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
+    //                     {method: "GET", signal: controller.signal})).json())['tags'];
 
     const updateListLengths = () => {
         const v = Number(Settings.preferences.results_visible);
@@ -256,7 +251,6 @@
     }
 
     Settings.loadSettings().then(() => {
-        updateFetchFunc();
         const inputs = [document.getElementById('q'), document.getElementById('searchform_q')];
         for (const input of inputs) {
             if (input != null) {
@@ -284,7 +278,6 @@
         if (namespace === 'local') {
             if (changes.hasOwnProperty('preferences')) {
                 Settings.loadSettings().then(() => {
-                    updateFetchFunc();
                     updateListLengths();
                 });
             }
