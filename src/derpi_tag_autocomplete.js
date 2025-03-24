@@ -1,7 +1,7 @@
 'use strict';
 
 (async () => {
-    const scrollEvent = new Event('scroll');
+    const scrollEvent = new Event('scroll'), API_TIMEOUT = 200;
     let fetchfunc, cleanQuery, apifetchfunc;
 
     // 0 -> text
@@ -38,7 +38,8 @@
     }
 
     const autocomplete = (input, ac_list) => {
-        let recievedPage = true, localOver = false, currentQuery, page = 1, controller = new AbortController();
+        let recievedPage = true, localOver = false, currentQuery, page = 1, controller = new AbortController(),
+            lastApiCall = 0, timer;
 
         const createListItem = (() => {
             const list = document.createElement('li'), outer_div = document.createElement('div'),
@@ -83,8 +84,8 @@
                     ac_list.firstElementChild.classList.add('ac-active');
                     ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
                 }
-                ac_list.dispatchEvent(scrollEvent);
             }
+            ac_list.dispatchEvent(scrollEvent);
         }
 
         async function getResults(newQuery) {
@@ -104,16 +105,20 @@
             } else ++page;
             if (!localOver) {
                 const localResults = await fetchfunc(curr, page, controller);
-                displayAutocompleteResults(newQuery, specials.concat(localResults));
                 // fallback to api if not fully local and api fallback enabled
                 if (localResults.length < 25) {
                     localOver = true;
                     recievedPage = true;
                 }
-            }
-            if (localOver && !Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
-                recievedPage = false;
-                displayAutocompleteResults(false, await apifetchfunc(curr, page - 1, controller));
+                displayAutocompleteResults(newQuery, specials.concat(localResults));
+            } else if (!Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
+                clearTimeout(timer);
+                const f = async () => {
+                    displayAutocompleteResults(newQuery, await apifetchfunc(curr, page - 1, controller));
+                    lastApiCall = performance.now();
+                };
+                if (performance.now() - lastApiCall > API_TIMEOUT) f();
+                else setTimeout(f, API_TIMEOUT);
             }
         }
 
@@ -127,6 +132,7 @@
             input.autocomplete = 'off';
             const newQuery = cleanQuery(input.value, input.selectionStart);
             if (newQuery.current !== currentQuery?.current) {
+                clearTimeout(timer);
                 if (!controller.signal.aborted) controller.abort();
                 controller = new AbortController();
                 currentQuery = newQuery;
@@ -165,6 +171,7 @@
 
         function closeList(full = true) {
             document.removeEventListener('click', closeList);
+            clearTimeout(timer);
             if (full) currentQuery = null;
             ac_list.classList.add('hidden');
             const newList = ac_list.cloneNode();
