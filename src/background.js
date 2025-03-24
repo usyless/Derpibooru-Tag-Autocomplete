@@ -190,7 +190,7 @@ async function getDerpiCompiledTags() {
         // get all tag and alias names
         for (let i = 0; i < num_tags; ++i) {
             const tag_length = view.getUint8(ptr++);
-            tags.push([textDecoder.decode(b.slice(ptr, ptr + tag_length)), [], 0]);
+            tags.push([textDecoder.decode(new Uint8Array(b, ptr, tag_length)), [], 0]);
             ptr += tag_length;
             ptr += 1 + (view.getUint8(ptr) * 4);
         }
