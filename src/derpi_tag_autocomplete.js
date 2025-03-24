@@ -38,7 +38,7 @@
     }
 
     const autocomplete = (input, ac_list) => {
-        let recievedPage = true, currentQuery, page = 1, controller = new AbortController(), timer;
+        let recievedPage = true, currentQuery, page = 1, controller = new AbortController();
 
         const createListItem = (() => {
             const list = document.createElement('li'), outer_div = document.createElement('div'),
@@ -113,7 +113,6 @@
             input.autocomplete = 'off';
             const newQuery = cleanQuery(input.value, input.selectionStart);
             if (newQuery.current !== currentQuery?.current) {
-                clearTimeout(timer);
                 if (!controller.signal.aborted) controller.abort();
                 controller = new AbortController();
                 currentQuery = newQuery;
@@ -179,7 +178,6 @@
                         input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
 
                         input.focus();
-                        clearTimeout(timer);
                         closeList();
                     }
                 });
