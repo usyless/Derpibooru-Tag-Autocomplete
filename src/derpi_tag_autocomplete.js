@@ -74,7 +74,7 @@
                 document.addEventListener('click', closeList, {once: true});
                 ac_list.dataset.query = JSON.stringify(currentQuery);
             }
-            if (data != null && data.length > 0) {
+            if (data?.length > 0) {
                 receivedPage = true;
                 ac_list.classList.remove('hidden');
                 const curr = currentQuery.regex;
@@ -84,7 +84,7 @@
                     ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
                 }
             }
-            if (data.length < 25) ac_list.dispatchEvent(scrollEvent);
+            if (data?.length < 25) ac_list.dispatchEvent(scrollEvent);
         }
 
         async function getResults(newQuery) {
@@ -117,20 +117,40 @@
             } else if (!Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
                 clearTimeout(timer);
                 const f = async () => {
-                    let apiResults;
-                    if (page > 1 && firstAPI) {
-                        const [res1, res2] = await Promise.all([apifetchfunc(curr, page - 1, controller), apifetchfunc(curr, page, controller)]);
-                        apiResults = res1.concat(res2);
-                    } else {
-                        apiResults = await apifetchfunc(curr, page, controller);
-                    }
+                    let apiResults = await apifetchfunc(curr, page, controller);
                     if (firstAPI) {
-                        const last = ac_list?.lastElementChild?.querySelector('.text-div')?.textContent;
-                        for (let i = 0; i < apiResults.length; ++i) if (apiResults[i].name === last) {
-                            apiResults.splice(0, i + 1);
-                            break;
-                        }
                         firstAPI = false;
+                        if (apiResults?.length > 0) {
+                            const lastElem = ac_list?.lastElementChild,
+                                lastText = lastElem?.querySelector('.text-div')?.textContent,
+                                lastCount = +lastElem?.querySelector('.number-div').textContent;
+
+                            let pageCopy = page, extras = 2;
+                            while (apiResults[0]?.images <= lastCount && pageCopy > 1 && extras > 0) {
+                                apiResults = (await apifetchfunc(curr, --pageCopy, controller)).concat(apiResults);
+                                --extras;
+                            }
+                            extras = 2;
+                            let noneRemain = false;
+                            while (apiResults[apiResults.length - 1]?.images >= lastCount && extras > 0) {
+                                const r = await apifetchfunc(curr, ++page, controller);
+                                if (r?.length <= 0) {
+                                    noneRemain = true;
+                                    break;
+                                }
+                                apiResults = apiResults.concat(r);
+                                --extras;
+                            }
+
+                            for (let i = 0; i < apiResults.length; ++i) if (apiResults[i].name === lastText) {
+                                apiResults.splice(0, i + 1);
+                                break;
+                            }
+                            if (apiResults.length === 0 && !noneRemain) {
+                                apiResults = await apifetchfunc(curr, ++pageCopy, controller);
+                                ++page;
+                            }
+                        }
                     }
                     displayAutocompleteResults(newQuery, apiResults);
                     lastApiCall = performance.now();
@@ -278,9 +298,10 @@
     });
 
 
-    apifetchfunc = async (query, page, controller) =>
-        (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
-                    {method: "GET", signal: controller.signal})).json())['tags'];
+    apifetchfunc = async (query, page, controller) => {
+        return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
+            {method: "GET", signal: controller.signal})).json())['tags'];
+    }
 
     const updateListLengths = () => {
         const v = Number(Settings.preferences.results_visible);
