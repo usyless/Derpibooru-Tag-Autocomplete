@@ -84,7 +84,7 @@
                     ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
                 }
             }
-            ac_list.dispatchEvent(scrollEvent);
+            if (data.length < 25) ac_list.dispatchEvent(scrollEvent);
         }
 
         async function getResults(newQuery) {
