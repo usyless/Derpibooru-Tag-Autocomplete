@@ -1,5 +1,5 @@
 # Derpibooru Tag Autocomplete
-Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using the available API or using a local list of tags
+An alternative tag autocompletion for derpibooru.org, using either a combination of local autocomplete and its API, or with a fully local autocomplete
 
 ## Use Instructions
 - No setup required, just install the extension.
@@ -7,13 +7,18 @@ Altertnative tag autocompletion for derpibooru.org, with infinite scroll, using 
 - Press `tab` to fill the currently selected item, by default this will fill the first item.
 - Currently supported search operators (will not interfere with search):
   - `,`, `AND`, `&&`, `OR`, `||`, `-`, `!`, `NOT`, `()`
+- Supported autocomplete operators: `*` and `?`, which work as they do in the derpibooru search
 
 ## Settings
 - Change match mode from any match in the search to just matching the start of the tags
 - Toggle searching of special tags, such as score:, created_at:, etc.
 - Displayed results count
+- You can toggle the usage of API calls to fill results once the local autocomplete is exhausted
+
+## Fully local autocomplete
 - If you enable the local autocomplete you need to make sure to provide a valid tags file
 - The tags file is a csv of format `{tag name},{tag count},"{tag aliases separated by commas inside quotes}"`
+- Enabling this disables all api calls
 
 ## Install
 ### Firefox Desktop/Mobile (or Fennec)
