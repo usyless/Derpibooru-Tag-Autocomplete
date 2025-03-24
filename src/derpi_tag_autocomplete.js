@@ -38,7 +38,7 @@
     }
 
     const autocomplete = (input, ac_list) => {
-        let recievedPage = true, localOver = false, currentQuery, controller = new AbortController(),
+        let receivedPage = true, localOver = false, currentQuery, controller = new AbortController(),
             lastApiCall = 0, timer, items = 0, page = 1, firstAPI = false;
 
         const createListItem = (() => {
@@ -75,7 +75,7 @@
                 ac_list.dataset.query = JSON.stringify(currentQuery);
             }
             if (data != null && data.length > 0) {
-                recievedPage = true;
+                receivedPage = true;
                 ac_list.classList.remove('hidden');
                 const curr = currentQuery.regex;
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
@@ -88,7 +88,7 @@
         }
 
         async function getResults(newQuery) {
-            recievedPage = false;
+            receivedPage = false;
             const curr = currentQuery.current, specials = [];
             if (newQuery) {
                 localOver = false;
@@ -110,7 +110,7 @@
                 if (localResults.length < 25) {
                     localOver = true;
                     firstAPI = true;
-                    recievedPage = true;
+                    receivedPage = true;
                     page = Math.floor(items / 25); // no + 1 as it's handled by the above else case
                 }
                 displayAutocompleteResults(newQuery, specials.concat(localResults));
@@ -200,7 +200,7 @@
                 ac_list.addEventListener('scroll', () => {
                     if (ac_list.scrollTop < lastScrollTop) return;
                     lastScrollTop = ac_list.scrollTop <= 0 ? 0 : ac_list.scrollTop;
-                    if (recievedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults(false);
+                    if (receivedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults(false);
                 }, {signal: controller.signal});
             }
             { // input stuff
