@@ -79,9 +79,9 @@
                 ac_list.classList.remove('hidden');
                 const curr = currentQuery.regex;
                 for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
-                if (newQuery) {
+                if (!ac_list.querySelector('.ac-active')) {
                     ac_list.firstElementChild.classList.add('ac-active');
-                    ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
+                    newQuery && ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
                 }
             }
             if (data?.length < 25) ac_list.dispatchEvent(scrollEvent);
