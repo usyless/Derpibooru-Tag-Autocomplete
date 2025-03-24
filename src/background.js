@@ -54,7 +54,7 @@ async function migrateSettings(previousVersion) {
         });
     }
 
-    if (versionBelowGiven(previousVersion, '1.2.7')) {
+    if (versionBelowGiven(previousVersion, '1.3')) {
         // force it to be parsed
         await local_autocomplete_set({data: await local_autocomplete_get()});
     }
