@@ -33,7 +33,7 @@ if (typeof this.browser === 'undefined') {
             },
             {
                 name: 'api_fallback',
-                description: "Fallback to using the Derpibooru API for results (Experimental)",
+                description: "Fallback to using the Derpibooru API for results",
                 default: true,
                 category: 'preferences'
             }
