@@ -67,7 +67,7 @@ async function migrateSettings(previousVersion) {
     }
 }
 
-const LOCAL_AUTOCOMPLETE_DB_VERSION = 2;
+const LOCAL_AUTOCOMPLETE_DB_VERSION = 3;
 function updateLocalAutocompleteDB() {
     return new Promise((resolve) => {
         const db = indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION);
@@ -76,12 +76,17 @@ function updateLocalAutocompleteDB() {
 
             if (event.oldVersion <= 0) {
                 const objectStore = db.createObjectStore('data', {keyPath: 'id'});
-                objectStore.put({id: "1", data: ""});
+                objectStore.put({id: "1", data: ""}); // fully local tags
             }
 
             if (event.oldVersion <= 1) {
                 const objectStore = event.target.transaction.objectStore('data');
-                objectStore.put({id: "2", data: ""});
+                objectStore.put({id: "2", data: ""}); // local derpi tags
+            }
+
+            if (event.oldVersion <= 2) {
+                const objectStore = event.target.transaction.objectStore('data');
+                objectStore.put({id: "3", data: ""}); // local derpi tags last date
             }
         });
         db.addEventListener('success', resolve);
@@ -110,15 +115,33 @@ function getAutocompleteDB() {
     });
 }
 
-function local_autocomplete_set(request, sendResponse) {
-    getAutocompleteDB().then((db) => {
-        db.transaction(['data'], 'readwrite').objectStore('data')
-            .put({id: "1", data: parseCSV(request.data)}).addEventListener('success', () => {
-                sendResponse?.(true);
-                // force a reload
-                reload_autocomplete();
+function get_from_db(id) {
+    return new Promise((resolve) => {
+        getAutocompleteDB().then((db) => {
+            db.transaction(['data'], 'readonly').objectStore('data').get(id).addEventListener('success', (e) => {
+                resolve(e.target.result.data);
+            });
         });
     });
+}
+
+function set_to_db(id, data) {
+    return new Promise((resolve) => {
+        getAutocompleteDB().then((db) => {
+            db.transaction(['data'], 'readwrite').objectStore('data').put({id, data}).addEventListener('success', resolve);
+        });
+    });
+}
+
+function local_autocomplete_set(request, sendResponse) {
+    set_to_db("1", parseCSV(request.data)).then(() => {
+        sendResponse?.(true);
+        reload_autocomplete();
+    });
+}
+
+function local_autocomplete_get() {
+    return get_from_db("1");
 }
 
 function parseCSV(csv) {
@@ -148,16 +171,6 @@ function parseCSV(csv) {
     return tags.length > 0 ? tags : 'Make sure to provide a valid tags file.';
 }
 
-function local_autocomplete_get() {
-    return new Promise((resolve) => {
-        getAutocompleteDB().then((db) => {
-            db.transaction(['data'], 'readonly').objectStore('data').get("1").addEventListener('success', (e) => {
-                resolve(e.target.result.data);
-            });
-        });
-    });
-}
-
 function clear_all_autocomplete(_, sendResponse) {
     getAutocompleteDB().then((db) => {
         const t = db.transaction(['data'], 'readwrite');
@@ -171,37 +184,26 @@ function clear_all_autocomplete(_, sendResponse) {
     });
 }
 
-function derpi_autocomplete_set(data) {
-    getAutocompleteDB().then((db) => {
-        db.transaction(['data'], 'readwrite').objectStore('data').put({id: "2", data});
-    });
-}
+const derpi_autocomplete_set = (data) => set_to_db("2", data);
+const derpi_autocomplete_get = () => get_from_db("2");
 
-function derpi_autocomplete_get() {
-    return new Promise((resolve) => {
-        getAutocompleteDB().then((db) => {
-            db.transaction(['data'], 'readonly').objectStore('data').get("2").addEventListener('success', (e) => {
-                resolve(e.target.result.data);
-            });
-        });
-    });
-}
+const derpi_autocomplete_set_date_modified = (data) => set_to_db("3",  data);
+const derpi_autocomplete_get_date_modified = () => get_from_db("3");
 
 const DERPI_COMPILED_VERSION = 2;
 async function getDerpiCompiledTags() {
     try {
         const now = new Date();
-        const [r, curr] = await Promise.all([
+        const [r, curr, last] = await Promise.all([
             fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
-            derpi_autocomplete_get()
+            derpi_autocomplete_get(),
+            derpi_autocomplete_get_date_modified()
         ]);
-        const modified = new Date(r.headers.get('last-modified'));
 
         if (!r.ok) return [];
 
-        modified.setHours(0, 0, 0, 0);
         now.setHours(0, 0, 0, 0);
-        if ((modified.toISOString() === now.toISOString()) && Array.isArray(curr)) {
+        if ((last === now.toISOString()) && Array.isArray(curr)) {
             console.log("Reusing saved db");
             return curr;
         } else {
@@ -234,6 +236,7 @@ async function getDerpiCompiledTags() {
             // cut off aliases
             tags.length = num_tags - aliases_count;
             derpi_autocomplete_set(tags);
+            derpi_autocomplete_set_date_modified(now.toISOString());
             return tags;
         }
     } catch {
