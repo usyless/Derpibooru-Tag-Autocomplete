@@ -67,9 +67,10 @@ async function migrateSettings(previousVersion) {
     }
 }
 
+const LOCAL_AUTOCOMPLETE_DB_VERSION = 2;
 function updateLocalAutocompleteDB() {
     return new Promise((resolve) => {
-        const db = indexedDB.open('local_autocomplete', 2);
+        const db = indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION);
         db.addEventListener('upgradeneeded', (event) => {
             const db = event.target.result;
 
@@ -96,7 +97,7 @@ function getAutocompleteDB() {
         else if (db_opening) pending_db_promises.push(resolve);
         else {
             db_opening = true;
-            indexedDB.open('local_autocomplete', 2)
+            indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION)
                 .addEventListener('success', (e) => {
                     local_autocomplete_db = e.target.result;
                     db_opening = false;
