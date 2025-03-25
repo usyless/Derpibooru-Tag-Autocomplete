@@ -184,26 +184,25 @@ function clear_all_autocomplete(_, sendResponse) {
     });
 }
 
-const derpi_autocomplete_set = (data) => set_to_db("2", data);
-const derpi_autocomplete_get = () => get_from_db("2");
-
-const derpi_autocomplete_set_date_modified = (data) => set_to_db("3",  data);
-const derpi_autocomplete_get_date_modified = () => get_from_db("3");
+const derpi_autocomplete_set = (data, key) => {
+    set_to_db("2", data);
+    set_to_db("3",  key);
+}
+const derpi_autocomplete_get = () => Promise.all([get_from_db("2"), get_from_db("3")]);
 
 const DERPI_COMPILED_VERSION = 2;
 async function getDerpiCompiledTags() {
     try {
-        const now = new Date();
-        const [r, curr, last] = await Promise.all([
-            fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`),
+        const now = new Date(), key = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`;
+        const [r, [curr, last]] = await Promise.all([
+            fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${key}`),
             derpi_autocomplete_get(),
-            derpi_autocomplete_get_date_modified()
         ]);
 
         if (!r.ok) return [];
 
         now.setHours(0, 0, 0, 0);
-        if ((last === now.toISOString()) && Array.isArray(curr)) {
+        if ((last === key) && Array.isArray(curr)) {
             console.log("Reusing saved db");
             return curr;
         } else {
@@ -235,8 +234,7 @@ async function getDerpiCompiledTags() {
             tags.sort((a, b) => b[2] - a[2]);
             // cut off aliases
             tags.length = num_tags - aliases_count;
-            derpi_autocomplete_set(tags);
-            derpi_autocomplete_set_date_modified(now.toISOString());
+            derpi_autocomplete_set(tags, key);
             return tags;
         }
     } catch {
