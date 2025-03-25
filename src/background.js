@@ -172,15 +172,9 @@ function parseCSV(csv) {
 }
 
 function clear_all_autocomplete(_, sendResponse) {
-    getAutocompleteDB().then((db) => {
-        const t = db.transaction(['data'], 'readwrite');
-        const os = t.objectStore('data');
-        os.put({id: "1", data: ""});
-        os.put({id: "2", data: ""});
-        t.addEventListener('complete', () => {
-            sendResponse?.(true);
-            reload_autocomplete();
-        });
+    Promise.all([set_to_db("1", ""), set_to_db("2", "")]).then(() => {
+        sendResponse?.(true);
+        reload_autocomplete();
     });
 }
 
