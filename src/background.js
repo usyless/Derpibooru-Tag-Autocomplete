@@ -39,25 +39,28 @@ async function migrateSettings(previousVersion) {
     // 1.2.6 is settings migrate update
     if (versionBelowGiven(previousVersion, '1.2.6')) {
         console.log("Migrating settings to new format");
-        chrome.storage.local.get(async (s) => {
-            const {
-                match_start, special_searches, results_visible,
+        await new Promise(resolve => {
+            chrome.storage.local.get(async (s) => {
+                const {
+                    match_start, special_searches, results_visible,
 
-                local_autocomplete_enabled, local_autocomplete_tags, local_autocomplete_current_file_name
-            } = s;
+                    local_autocomplete_enabled, local_autocomplete_tags, local_autocomplete_current_file_name
+                } = s;
 
-            await chrome.storage.local.clear();
-            const newSettings = {preferences: {}, local_autocomplete_current_file_name};
+                await chrome.storage.local.clear();
+                const newSettings = {preferences: {}, local_autocomplete_current_file_name};
 
-            if (match_start != null) newSettings.preferences.match_start = match_start;
-            if (special_searches != null) newSettings.preferences.special_searches = special_searches;
-            if (results_visible != null) newSettings.preferences.results_visible = results_visible;
+                if (match_start != null) newSettings.preferences.match_start = match_start;
+                if (special_searches != null) newSettings.preferences.special_searches = special_searches;
+                if (results_visible != null) newSettings.preferences.results_visible = results_visible;
 
-            if (local_autocomplete_enabled != null) newSettings.preferences.local_autocomplete_enabled = local_autocomplete_enabled;
+                if (local_autocomplete_enabled != null) newSettings.preferences.local_autocomplete_enabled = local_autocomplete_enabled;
 
-            await chrome.storage.local.set(newSettings);
+                await chrome.storage.local.set(newSettings);
 
-            await local_autocomplete_set({data: local_autocomplete_tags ?? ""});
+                await local_autocomplete_set({data: local_autocomplete_tags ?? ""});
+                resolve();
+            });
         });
     }
 
@@ -160,7 +163,7 @@ function parseCSV(csv) {
                     aliases.push(values[i].trim().toLowerCase().replaceAll('"', ""));
                 }
 
-                push([values[0].trim().toLowerCase(), aliases.length > 0 ? aliases : undefined, values[1]]);
+                push([values[0].trim().toLowerCase(), aliases.length > 0 ? aliases : undefined, +values[1]]);
             } else {
                 return `Error parsing tags CSV at line ${Number(i.toString()) + 1}`;
             }
