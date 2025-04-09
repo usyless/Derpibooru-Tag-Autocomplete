@@ -127,20 +127,18 @@
                                 lastCount = +lastElem?.querySelector('.number-div').textContent;
 
                             let pageCopy = page, extras = 2;
-                            while (apiResults[0]?.images <= lastCount && pageCopy > 1 && extras > 0) {
+                            while (apiResults[0]?.images <= lastCount && pageCopy > 1 && extras-- > 0) {
                                 apiResults = (await apifetchfunc(curr, --pageCopy, controller)).concat(apiResults);
-                                --extras;
                             }
                             extras = 2;
                             let noneRemain = false;
-                            while (apiResults[apiResults.length - 1]?.images >= lastCount && extras > 0) {
+                            while (apiResults[apiResults.length - 1]?.images >= lastCount && extras-- > 0) {
                                 const r = await apifetchfunc(curr, ++page, controller);
                                 if (r?.length <= 0) {
                                     noneRemain = true;
                                     break;
                                 }
                                 apiResults = apiResults.concat(r);
-                                --extras;
                             }
 
                             for (let i = 0; i < apiResults.length; ++i) if (apiResults[i].name === lastText) {
