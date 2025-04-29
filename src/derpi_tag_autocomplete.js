@@ -154,7 +154,7 @@
                     displayAutocompleteResults(newQuery, apiResults);
                     lastApiCall = performance.now();
                 };
-                if (performance.now() - lastApiCall > API_TIMEOUT) f();
+                if ((performance.now() - lastApiCall) > API_TIMEOUT) f();
                 else timer = setTimeout(f, API_TIMEOUT);
             }
         }
