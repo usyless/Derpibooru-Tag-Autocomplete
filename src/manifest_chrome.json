@@ -35,6 +35,7 @@
     "page": "/settings/settings.html"
   },
   "action": {
-    "default_icon": "icons/tag-autocomplete-96.png"
+    "default_icon": "icons/tag-autocomplete-96.png",
+    "default_title": "Settings"
   }
 }
