@@ -82,6 +82,7 @@ function updateLocalAutocompleteDB() {
         const db = indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION);
         db.addEventListener('upgradeneeded', (event) => {
             const db = event.target.result;
+            const transaction = event.target.transaction;
 
             if (event.oldVersion <= 0) {
                 const objectStore = db.createObjectStore('data', {keyPath: 'id'});
@@ -89,12 +90,12 @@ function updateLocalAutocompleteDB() {
             }
 
             if (event.oldVersion <= 1) {
-                const objectStore = event.target.transaction.objectStore('data');
+                const objectStore = transaction.objectStore('data');
                 objectStore.put({id: "2", data: ""}); // local derpi tags
             }
 
             if (event.oldVersion <= 2) {
-                const objectStore = event.target.transaction.objectStore('data');
+                const objectStore = transaction.objectStore('data');
                 objectStore.put({id: "3", data: ""}); // local derpi tags last date
             }
         });
@@ -187,22 +188,14 @@ function clear_all_autocomplete(_, sendResponse) {
     });
 }
 
-const derpi_autocomplete_set = (data, key) => {
-    set_to_db("2", data);
-    set_to_db("3",  key);
-}
+const derpi_autocomplete_set = (data, key) => Promise.all([set_to_db("2", data), set_to_db("3",  key)]);
 const derpi_autocomplete_get = () => Promise.all([get_from_db("2"), get_from_db("3")]);
 
 const DERPI_COMPILED_VERSION = 2;
 async function getDerpiCompiledTags() {
     try {
         const now = new Date(), key = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`;
-        const [r, [curr, last]] = await Promise.all([
-            fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${key}`),
-            derpi_autocomplete_get(),
-        ]);
-
-        if (!r.ok) return [];
+        const [curr, last] = await derpi_autocomplete_get();
 
         now.setHours(0, 0, 0, 0);
         if ((last === key) && Array.isArray(curr)) {
@@ -210,6 +203,13 @@ async function getDerpiCompiledTags() {
             return curr;
         } else {
             console.log("Loading new db");
+            const r = await fetch(`https://derpibooru.org/autocomplete/compiled?vsn=${DERPI_COMPILED_VERSION}&key=${key}`);
+
+            if (!r.ok) {
+                console.error("Bad DB response: ", r.status);
+                return [];
+            }
+
             const b = await r.arrayBuffer(), view = new DataView(b),
                 num_tags = view.getUint32(b.byteLength - 4, true),
                 tags = Array.from({length: num_tags}, () => [undefined, undefined, 0]),
@@ -237,7 +237,7 @@ async function getDerpiCompiledTags() {
             tags.sort((a, b) => b[2] - a[2]);
             // cut off aliases
             tags.length = num_tags - aliases_count;
-            derpi_autocomplete_set(tags, key);
+            void derpi_autocomplete_set(tags, key);
             return tags;
         }
     } catch {
