@@ -1,3 +1,9 @@
+let chromeMode = false;
+if (typeof this.browser === 'undefined') {
+    this.browser = chrome;
+    chromeMode = true;
+}
+
 const requestMap = {
     local_autocomplete_set: local_autocomplete_set,
     local_autocomplete_complete: null,
@@ -15,15 +21,15 @@ const reload_autocomplete = () => {
     AUTOCOMPLETE_ERROR = null;
 }
 
-chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
+browser.runtime.onMessage.addListener((request, _, sendResponse) => {
     requestMap[request.type]?.(request, sendResponse);
     return true;
 });
 
-chrome?.runtime?.onInstalled?.addListener?.((details) => {
+browser?.runtime?.onInstalled?.addListener?.((details) => {
     updateLocalAutocompleteDB().then(() => {
-        if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
-        else if (details.reason === 'update' && details.previousVersion != null) migrateSettings(details.previousVersion);
+        if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
+        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
     });
 });
 
@@ -40,14 +46,14 @@ async function migrateSettings(previousVersion) {
     if (versionBelowGiven(previousVersion, '1.2.6')) {
         console.log("Migrating settings to new format");
         await new Promise(resolve => {
-            chrome.storage.local.get(async (s) => {
+            browser.storage.local.get(async (s) => {
                 const {
                     match_start, special_searches, results_visible,
 
                     local_autocomplete_enabled, local_autocomplete_tags, local_autocomplete_current_file_name
                 } = s;
 
-                await chrome.storage.local.clear();
+                await browser.storage.local.clear();
                 const newSettings = {preferences: {}, local_autocomplete_current_file_name};
 
                 if (match_start != null) newSettings.preferences.match_start = match_start;
@@ -56,7 +62,7 @@ async function migrateSettings(previousVersion) {
 
                 if (local_autocomplete_enabled != null) newSettings.preferences.local_autocomplete_enabled = local_autocomplete_enabled;
 
-                await chrome.storage.local.set(newSettings);
+                await browser.storage.local.set(newSettings);
 
                 await local_autocomplete_set({data: local_autocomplete_tags ?? ""});
                 resolve();
@@ -291,3 +297,8 @@ async function getDerpiCompiledTags() {
         }
     }
 }
+
+// opening settings page
+((chromeMode) ? browser.action : browser.browserAction)?.onClicked?.addListener(() => {
+    void browser.runtime.openOptionsPage();
+});
