@@ -62,15 +62,11 @@ if (typeof this.browser === 'undefined') {
                     i.addEventListener('change', (e) => {
                             const file = e.target.files[0];
                             if (!file) return;
-                            const reader = new FileReader();
-                            reader.addEventListener('load', async () => {
-                                browser.runtime.sendMessage({type: 'local_autocomplete_set', data: reader.result}).then(() => {
-                                    alert("Successfully saved tags!");
-                                });
+                            file.text().then((data) => {
                                 setStorage({'local_autocomplete_current_file_name': file.name});
                                 document.getElementById('local_autocomplete_current_file_name').textContent = file.name;
-                            })
-                            reader.readAsText(file);
+                                return browser.runtime.sendMessage({type: 'local_autocomplete_set', data});
+                            }).then(() => alert("Successfully saved tags!"));
                     });
                     document.body.appendChild(i);
                 }
