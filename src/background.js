@@ -199,7 +199,6 @@ async function getDerpiCompiledTags() {
         const now = new Date(), key = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`;
         const [curr, last] = await derpi_autocomplete_get();
 
-        now.setHours(0, 0, 0, 0);
         if ((last === key) && Array.isArray(curr)) {
             console.log("Reusing saved db");
             return curr;
