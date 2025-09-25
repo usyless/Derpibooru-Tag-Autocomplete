@@ -47,29 +47,25 @@ async function migrateSettings(previousVersion) {
     // 1.2.6 is settings migrate update
     if (versionBelowGiven(previousVersion, '1.2.6')) {
         console.log("Migrating settings to new format");
-        await new Promise(resolve => {
-            extension.storage.local.get(async (s) => {
-                const {
-                    match_start, special_searches, results_visible,
 
-                    local_autocomplete_enabled, local_autocomplete_tags, local_autocomplete_current_file_name
-                } = s;
+        const {
+            match_start, special_searches, results_visible,
 
-                await extension.storage.local.clear();
-                const newSettings = {preferences: {}, local_autocomplete_current_file_name};
+            local_autocomplete_enabled, local_autocomplete_tags, local_autocomplete_current_file_name
+        } = await extension.storage.local.get();
 
-                if (match_start != null) newSettings.preferences.match_start = match_start;
-                if (special_searches != null) newSettings.preferences.special_searches = special_searches;
-                if (results_visible != null) newSettings.preferences.results_visible = results_visible;
+        await extension.storage.local.clear();
+        const newSettings = {preferences: {}, local_autocomplete_current_file_name};
 
-                if (local_autocomplete_enabled != null) newSettings.preferences.local_autocomplete_enabled = local_autocomplete_enabled;
+        if (match_start != null) newSettings.preferences.match_start = match_start;
+        if (special_searches != null) newSettings.preferences.special_searches = special_searches;
+        if (results_visible != null) newSettings.preferences.results_visible = results_visible;
 
-                await extension.storage.local.set(newSettings);
+        if (local_autocomplete_enabled != null) newSettings.preferences.local_autocomplete_enabled = local_autocomplete_enabled;
 
-                await local_autocomplete_set({data: local_autocomplete_tags ?? ""});
-                resolve();
-            });
-        });
+        await extension.storage.local.set(newSettings);
+
+        await local_autocomplete_set({data: local_autocomplete_tags ?? ""});
     }
 
     if (versionBelowGiven(previousVersion, '1.3')) {
