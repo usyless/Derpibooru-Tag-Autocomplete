@@ -1,6 +1,13 @@
 'use strict';
 
 (async () => {
+    // set browser to chrome if not in firefox
+    /** @type {typeof browser} */
+    const extension = typeof browser !== 'undefined' ? browser : (() => {
+        chromeMode = true;
+        return chrome;
+    })();
+
     const scrollEvent = new Event('scroll'), API_TIMEOUT = 200;
     let fetchfunc, cleanQuery, apifetchfunc;
 
@@ -29,12 +36,10 @@
             api_fallback: true,
         },
 
-        loadSettings: () => new Promise(resolve => {
-            chrome.storage.local.get(['preferences'], (s) => {
-                for (const setting of ['preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
-                resolve();
-            });
-        }),
+        loadSettings: async () => {
+            const s = await extension.storage.local.get(['preferences']);
+            for (const setting of ['preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
+        },
     }
 
     const autocomplete = (input, ac_list) => {
@@ -154,13 +159,13 @@
                     displayAutocompleteResults(newQuery, apiResults);
                     lastApiCall = performance.now();
                 };
-                if ((performance.now() - lastApiCall) > API_TIMEOUT) f();
+                if ((performance.now() - lastApiCall) > API_TIMEOUT) void f();
                 else timer = setTimeout(f, API_TIMEOUT);
             }
         }
 
         input.addEventListener('focus', () => {
-            chrome.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled});
+            extension.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled});
         });
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
@@ -283,9 +288,9 @@
     }
 
     fetchfunc = (query, page, controller) => new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}).then((r) => {
+        extension.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}).then((r) => {
             if (r) {
-                chrome.runtime.sendMessage({
+                extension.runtime.sendMessage({
                     type: 'local_autocomplete_complete', query, newQuery: page === 1,
                     match_start: Settings.preferences.match_start
                 }).then((r) => {
@@ -332,7 +337,7 @@
         updateListLengths();
     });
 
-    chrome.storage.onChanged.addListener((changes, namespace) => {
+    extension.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local') {
             if (changes.hasOwnProperty('preferences')) Settings.loadSettings().then(updateListLengths);
         }
