@@ -37,6 +37,13 @@
   "browser_action": {
     "default_icon": "icons/tag-autocomplete-96.png",
     "default_title": "Settings"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   }
 }
   
