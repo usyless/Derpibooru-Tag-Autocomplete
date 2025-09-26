@@ -1,11 +1,13 @@
-'use strict';
-
-if (typeof this.browser === 'undefined') {
-    this.browser = chrome;
-}
-
 (() => {
-    document.getElementById('versionDisplay').textContent += chrome?.runtime?.getManifest?.()?.version;
+    'use strict';
+
+    // set browser to chrome if not in firefox
+    /** @type {typeof browser} */
+    const extension = typeof browser !== 'undefined' ? browser : (() => {
+        return chrome;
+    })();
+
+    document.getElementById('versionDisplay').textContent += extension.runtime?.getManifest?.()?.version;
 
     const DIV = document.getElementById('settings');
 
@@ -159,7 +161,7 @@ if (typeof this.browser === 'undefined') {
         DIV.appendChild(outer);
     }
 
-    chrome.storage.local.get(valuesToUpdate.map(i => i.obj.category ?? i.obj.name), (s) => {
+    void extension.storage.local.get(valuesToUpdate.map(i => i.obj.category ?? i.obj.name)).then((s) => {
         for (const {obj, func} of valuesToUpdate) {
             if (obj.category != null) func(s[obj.category]?.[obj.name] ?? obj.default);
             else func(s[obj.name] ?? obj.default);
@@ -184,22 +186,22 @@ if (typeof this.browser === 'undefined') {
     }
 
     function update_value(e, obj, property) {
-        chrome.storage.local.get([obj.category ?? obj.name], (r) => {
+        return extension.storage.local.get([obj.category ?? obj.name]).then((r) => {
             if (obj.category != null) {
                 if (r[obj.category] == null) r[obj.category] = {};
                 r[obj.category][obj.name] = e.target[property];
             } else {
                 r[obj.name] = e.target[property];
             }
-            setStorage(r);
+            return setStorage(r);
         });
     }
 
     function setStorage(data) {
-        chrome.storage.local.set(data); // potentially add little saved message with .then
+        return extension.storage.local.set(data); // potentially add little saved message with .then
     }
 
     function clearStorage() {
-        chrome.storage.local.clear();
+        return extension.storage.local.clear();
     }
 })();
