@@ -1,4 +1,5 @@
-# Derpibooru Tag Autocomplete
+<h1 align="center"><a href="#"><img src="https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/src/icons/icon.svg?raw=true" width="160" height="160" alt="logo"></a><br>Derpibooru Tag Autocomplete</h1>
+
 An alternative tag autocompletion for derpibooru.org, using either a combination of local autocomplete and its API, or with a fully local autocomplete
 
 ## Use Instructions
@@ -24,6 +25,9 @@ An alternative tag autocompletion for derpibooru.org, using either a combination
 ### Firefox Desktop/Mobile (or Fennec)
 - Install extension through the [Mozilla addons page ](https://addons.mozilla.org/en-GB/firefox/addon/derpibooru-tag-autocomplete/)
 ### Chrome or other chromium based browsers
+- Install extension through the Chrome web store (COMING SOON)
+
+
 - Download chromium zip from the [latest release](https://github.com/usyless/Derpibooru-Tag-Autocomplete/releases/latest)
 - Unzip the file into a known directory
 - Visit chrome://extensions in your browser
