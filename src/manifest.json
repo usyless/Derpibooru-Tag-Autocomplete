@@ -6,7 +6,11 @@
   "author": "usy",
   "homepage_url": "https://github.com/usyless/Derpibooru-Tag-Autocomplete",
   "icons": {
-    "96": "icons/tag-autocomplete-96.png"
+    "16": "/icons/icon.svg",
+    "32": "/icons/icon.svg",
+    "48": "/icons/icon.svg",
+    "96": "/icons/icon.svg",
+    "128": "/icons/icon.svg"
   },
   "permissions": [
     "storage"
@@ -36,7 +40,7 @@
     "open_in_tab": true
   },
   "browser_action": {
-    "default_icon": "icons/tag-autocomplete-96.png",
+    "default_icon": "/icons/icon.svg",
     "default_title": "Settings"
   },
   "browser_specific_settings": {
