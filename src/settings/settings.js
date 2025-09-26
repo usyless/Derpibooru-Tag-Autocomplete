@@ -186,7 +186,7 @@
     }
 
     function update_value(e, obj, property) {
-        return extension.storage.local.get([obj.category ?? obj.name]).then((r) => {
+        return extension.storage.local.get(obj.category ?? obj.name).then((r) => {
             if (obj.category != null) {
                 if (r[obj.category] == null) r[obj.category] = {};
                 r[obj.category][obj.name] = e.target[property];
