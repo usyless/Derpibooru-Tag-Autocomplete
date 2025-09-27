@@ -247,11 +247,11 @@
         }
     }
 
-    {
+    cleanQuery = (() => {
         const searchOperators = [',', ' AND ', ' OR ', ' \\|\\| ', ' && '],
             regex = new RegExp(searchOperators.join('|'), 'g'), ignored = ['-', '!', 'NOT ', '('];
 
-        cleanQuery = (query, position) => {
+        return (query, position) => {
             const parts = query.split(regex);
             const splitters = query.match(regex);
 
@@ -276,7 +276,7 @@
             const current = query.trimStart().toLowerCase();
             return {current, parts, splitters, i, ignoredPrefix, lengthCounter, uncleaned: query.trimStart(), regex: getRegex(current)};
         };
-    }
+    });
 
     function simplifyNumber(number) {
         if (number === -2) return 'error';
