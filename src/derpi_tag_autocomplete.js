@@ -7,7 +7,10 @@
         return chrome;
     })();
 
-    const scrollEvent = new Event('scroll'), API_TIMEOUT = 450;
+    // 20 requests per 10 seconds -> probably not an ideal solution but it'll work
+    const API_TIMEOUT = 500;
+
+    const scrollEvent = new Event('scroll');
     let fetchfunc, cleanQuery, apifetchfunc;
 
     const literal_property = 0;
@@ -104,7 +107,7 @@
                 receivedPage = true;
                 ac_list.classList.remove('hidden');
                 const curr = currentQuery.regex;
-                for (const i of data) ac_list.appendChild(createListItem(curr, i['aliased_tag'], i['name'], i['images']));
+                for (const {aliased_tag, name, images} of data) ac_list.appendChild(createListItem(curr, aliased_tag, name, images));
                 if (!ac_list.querySelector('.ac-active')) {
                     ac_list.firstElementChild.classList.add('ac-active');
                     newQuery && ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
@@ -134,14 +137,14 @@
                     for (const [special, type] of special_searches) if (special.startsWith(currSpecialPart)) {
                         if (Array.isArray(type)) {
                             for (const value of type) if (value.startsWith(currValuePart)) {
-                                specials.push({aliased_tag: null, name: `${special}:${value}`, images: -1});
+                                specials.push({name: `${special}:${value}`, images: -1});
                             }
                             continue;
                         }
 
                         // Only add the property without modifier if user haven't typed it yet.
                         if (!hasStartedTypingModifier) {
-                            specials.push({aliased_tag: null, name: `${special}:${currValuePart}`, images: -1})
+                            specials.push({name: `${special}:${currValuePart}`, images: -1})
                         }
 
                         if (type === ranged_property) {
@@ -149,7 +152,7 @@
                                 // Display all if modifier isn't typed yet or match the modifier to the one user have typed.
                                 if (hasStartedTypingModifier && !modifier.startsWith(`.${currModifierPart}`)) continue;
 
-                                specials.push({aliased_tag: null,name: `${special}${modifier}:${currValuePart}`,images: -1});
+                                specials.push({name: `${special}${modifier}:${currValuePart}`,images: -1});
                             }
                         }
                     }
@@ -354,6 +357,7 @@
     apifetchfunc = async (query, page, controller) => {
         query = fixApiFetchQuery(query);
         console.log(`Making API Request for "${query}" with page ${page}`);
+
         return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
             {method: "GET", signal: controller.signal})).json())['tags'];
     }

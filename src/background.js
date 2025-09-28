@@ -281,7 +281,7 @@ async function getDerpiCompiledTags() {
             for (++pos; pos < length; ++pos) {
                 const [name, aliases, images] = tags[pos];
                 if (query_length <= name.length && comparator(name)) {
-                    result.push({aliased_tag: null, name, images});
+                    result.push({name, images});
                 } else if (aliases) for (const a of aliases) if (query_length <= a.length && comparator(a)) {
                     result.push({aliased_tag: name, name: a, images});
                     break;
@@ -290,7 +290,7 @@ async function getDerpiCompiledTags() {
             }
             sendResponse(result);
         } else {
-            sendResponse({aliased_tag: null, name: AUTOCOMPLETE_ERROR, images: -2});
+            sendResponse({name: AUTOCOMPLETE_ERROR, images: -2});
         }
     }
 }
