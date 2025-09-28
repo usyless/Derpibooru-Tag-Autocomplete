@@ -357,6 +357,10 @@
 
         const rate_limit_key = 'api_rate_limited_until';
 
+        // 20 requests per 10 seconds
+        let request_count = 0;
+        let request_count_reset_time = 0;
+
         const makeRequest = async (query, page, controller) => {
             const r = await fetch(
                 `https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
@@ -383,17 +387,26 @@
         }
 
         return async (query, page, controller) => {
+            const currentTime = Date.now();
+
+            if (currentTime > request_count_reset_time) {
+                request_count_reset_time = currentTime + 10000;
+                request_count = 0;
+            }
+
             query = fixApiFetchQuery(query);
             console.log(`Making API Request for "${query}" with page ${page}`);
 
             let limitedUntil = (await extension.storage.local.get(rate_limit_key))[rate_limit_key] ?? 0;
-            const currentTime = Date.now();
             if (typeof limitedUntil !== 'number' || limitedUntil > (currentTime + (17 * 60 * 1000))) {
                 limitedUntil = 0;
                 await extension.storage.local.set({[rate_limit_key]: limitedUntil});
             }
 
-            if (limitedUntil > currentTime) {
+            if ((++request_count > 20) && (request_count_reset_time > limitedUntil)) {
+                console.log(`Waiting ${(request_count_reset_time - currentTime) / 1000}s before making request for "${query}"`);
+                await new Promise(resolve => setTimeout(resolve, request_count_reset_time - currentTime));
+            } else if (limitedUntil > currentTime) {
                 // if controller is cancelled then it'll just throw when making a request
                 console.log(`Waiting ${(limitedUntil - currentTime) / 1000}s before making request for "${query}"`);
                 await new Promise(resolve => setTimeout(resolve, limitedUntil - currentTime));
