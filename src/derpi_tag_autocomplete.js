@@ -114,9 +114,12 @@
                 page = 1;
                 items = 0;
                 if (Settings.preferences.special_searches) {
-                    const currParts = curr.split(':');
-                    const currSpecialPart = currParts.shift();
+                    const /** @type {string[]} */ currParts = curr.split(':');
+                    const currSpecialWithModifier = currParts.shift().split('.');
+                    const currSpecialPart = currSpecialWithModifier.shift();
+                    const currModifierPart = currSpecialWithModifier.join('.');
                     const currValuePart = currParts.join(':');
+                    const hasStartedTypingModifier = currSpecialWithModifier.length > 0;
 
                     for (const [special, type] of special_searches) if (special.startsWith(currSpecialPart)) {
                         if (Array.isArray(type)) {
@@ -125,10 +128,20 @@
                             }
                             continue;
                         }
-                        specials.push({aliased_tag: null, name: `${special}:${currValuePart}`, images: -1});
-                        if (type === ranged_property) for (const modifier of range_modifiers) {
-                            specials.push({aliased_tag: null, name: `${special}${modifier}:${currValuePart}`, images: -1});
+
+                        if (type === ranged_property) {
+                            for (const modifier of range_modifiers) {
+                                // Display all if modifier isn't typed yet or match the modifier to the one user have typed.
+                                if (hasStartedTypingModifier && !modifier.startsWith(`.${currModifierPart}`)) continue;
+
+                                specials.push({aliased_tag: null,name: `${special}${modifier}:${currValuePart}`,images: -1});
+                            }
+
+                            // Do not display property without modifier, since there is no point.
+                            if (hasStartedTypingModifier) continue;
                         }
+
+                        specials.push({aliased_tag: null, name: `${special}:${currValuePart}`, images: -1});
                     }
                 }
             } else ++page;
