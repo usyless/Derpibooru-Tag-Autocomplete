@@ -61,7 +61,6 @@
             currentQuery,
             specialMatch = false,
             controller = new AbortController(),
-            lastApiCall = 0,
             timer,
             items = 0,
             page = 1,
@@ -207,7 +206,6 @@
                         }
                     }
                     displayAutocompleteResults(newQuery, apiResults);
-                    lastApiCall = performance.now();
                 };
                 timer = setTimeout(f, API_TIMEOUT);
             }
