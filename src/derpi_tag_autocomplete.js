@@ -12,18 +12,26 @@
 
     const literal_property = 0;
     const ranged_property = 1;
+    const boolean_property = ['true', 'false'];
+    const my_namespace = ['comments', 'faves', 'uploads', 'upvotes', 'watched'];
 
     const special_searches = [
-        ["animated", literal_property], ["aspect_ratio", ranged_property], ["comment_count", ranged_property],
+        ["animated", boolean_property], ["aspect_ratio", ranged_property], ["body_type_tag_count", ranged_property],
+        ["character_tag_count", ranged_property], ["comment_count", ranged_property],
+        ["content_fanmade_tag_count", ranged_property], ["content_official_tag_count", ranged_property],
         ["created_at", ranged_property], ["description", literal_property], ["downvotes", ranged_property],
-        ["duration", ranged_property], ["faved_by", literal_property], ["faves", ranged_property],
-        ["file_name", literal_property], ["first_seen_at", ranged_property], ["gallery_id", literal_property],
-        ["height", ranged_property], ["id", ranged_property], ["mime_type", literal_property],
-        ["orig_sha512_hash", literal_property], ["original_format", literal_property], ["pixels", ranged_property],
+        ["duplicate_id", ranged_property], ["duration", ranged_property], ["faved_by", literal_property],
+        ["faves", ranged_property], ["file_name", literal_property], ["first_seen_at", ranged_property],
+        ["gallery_id", literal_property], ["height", ranged_property], ["id", ranged_property],
+        ["mime_type", literal_property], ["my", my_namespace], ["oc_tag_count", ranged_property],
+        ["orig_sha512_hash", literal_property], ["orig_size", ranged_property], ["original_format", literal_property],
+        ["pixels", ranged_property], ["processed", boolean_property], ["rating_tag_count", ranged_property],
         ["score", ranged_property], ["sha512_hash", literal_property], ["size", ranged_property],
-        ["source_count", ranged_property], ["source_url", literal_property], ["tag_count", ranged_property],
-        ["updated_at", ranged_property], ["uploader", literal_property], ["upvotes", ranged_property],
-        ["width", ranged_property], ["wilson_score", ranged_property],
+        ["source_count", ranged_property], ["source_url", literal_property], ["species_tag_count", ranged_property],
+        ["spoiler_tag_count", ranged_property], ["tag_count", ranged_property],
+        ["thumbnails_generated", boolean_property], ["updated_at", ranged_property], ["uploader", literal_property],
+        ['uploader_id', ranged_property], ["upvotes", ranged_property], ["width", ranged_property],
+        ["wilson_score", ranged_property],
     ], range_modifiers = [
         ".gt", ".lt", ".gte", ".lte"
     ];
