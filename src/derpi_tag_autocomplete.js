@@ -107,6 +107,12 @@
                 items = 0;
                 if (Settings.preferences.special_searches) {
                     for (const [special, type] of special_searches) if (special.startsWith(curr)) {
+                        if (Array.isArray(type)) {
+                            for (const value of type) if (`${special}:${value}`.startsWith(curr)) {
+                                specials.push({aliased_tag: null, name: `${special}:${value}`, images: -1});
+                            }
+                            continue;
+                        }
                         specials.push({aliased_tag: null, name: special + ":", images: -1});
                         if (type === ranged_property) for (const modifier of range_modifiers) {
                             specials.push({aliased_tag: null, name: `${special}${modifier}:`, images: -1});
