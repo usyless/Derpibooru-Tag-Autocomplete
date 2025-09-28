@@ -210,9 +210,8 @@
             }
         }
 
-        input.addEventListener('focus', () => {
-            extension.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled});
-        });
+        input.addEventListener('focus', () =>
+            extension.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}));
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
 
@@ -225,7 +224,7 @@
                 controller = new AbortController();
                 currentQuery = newQuery;
                 if (currentQuery.current.length <= 0) closeList();
-                else getResults(true);
+                else void getResults(true);
             }
         }
 
@@ -270,7 +269,7 @@
                 ac_list.addEventListener('scroll', () => {
                     if (ac_list.scrollTop < lastScrollTop) return;
                     lastScrollTop = ac_list.scrollTop <= 0 ? 0 : ac_list.scrollTop;
-                    if (receivedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults(false);
+                    if (receivedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) void getResults(false);
                 }, {signal: controller.signal});
             }
         }
