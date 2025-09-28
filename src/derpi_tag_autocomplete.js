@@ -10,14 +10,20 @@
     const scrollEvent = new Event('scroll'), API_TIMEOUT = 200;
     let fetchfunc, cleanQuery, apifetchfunc;
 
-    // 0 -> text
-    // 1 -> range
+    const literal_property = 0;
+    const ranged_property = 1;
+
     const special_searches = [
-        ["animated", 0], ["aspect_ratio", 1], ["comment_count", 1], ["created_at", 1], ["description", 0],
-        ["downvotes", 1], ["duration", 1], ["faved_by", 0], ["faves", 1], ["file_name", 0], ["first_seen_at", 1],
-        ["gallery_id", 0], ["height", 1], ["id", 1], ["mime_type", 0], ["orig_sha512_hash", 0], ["original_format", 0],
-        ["pixels", 1], ["score", 1], ["sha512_hash", 0], ["size", 1], ["source_count", 1], ["source_url", 0],
-        ["tag_count", 1], ["updated_at", 1], ["uploader", 0], ["upvotes", 1], ["width", 1], ["wilson_score", 1]
+        ["animated", literal_property], ["aspect_ratio", ranged_property], ["comment_count", ranged_property],
+        ["created_at", ranged_property], ["description", literal_property], ["downvotes", ranged_property],
+        ["duration", ranged_property], ["faved_by", literal_property], ["faves", ranged_property],
+        ["file_name", literal_property], ["first_seen_at", ranged_property], ["gallery_id", literal_property],
+        ["height", ranged_property], ["id", ranged_property], ["mime_type", literal_property],
+        ["orig_sha512_hash", literal_property], ["original_format", literal_property], ["pixels", ranged_property],
+        ["score", ranged_property], ["sha512_hash", literal_property], ["size", ranged_property],
+        ["source_count", ranged_property], ["source_url", literal_property], ["tag_count", ranged_property],
+        ["updated_at", ranged_property], ["uploader", literal_property], ["upvotes", ranged_property],
+        ["width", ranged_property], ["wilson_score", ranged_property],
     ], range_modifiers = [
         ".gt", ".lt", ".gte", ".lte"
     ];
@@ -102,7 +108,7 @@
                 if (Settings.preferences.special_searches) {
                     for (const [special, type] of special_searches) if (special.startsWith(curr)) {
                         specials.push({aliased_tag: null, name: special + ":", images: -1});
-                        if (type === 1) for (const modifier of range_modifiers) {
+                        if (type === ranged_property) for (const modifier of range_modifiers) {
                             specials.push({aliased_tag: null, name: `${special}${modifier}:`, images: -1});
                         }
                     }
