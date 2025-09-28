@@ -171,7 +171,7 @@
                 displayAutocompleteResults(newQuery, specials.concat(localResults));
             } else if (!specialMatch && !Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
                 clearTimeout(timer);
-                const f = async () => {
+                timer = setTimeout(async () => {
                     let apiResults = await apifetchfunc(curr, page, controller);
                     if (firstAPI) {
                         firstAPI = false;
@@ -206,8 +206,7 @@
                         }
                     }
                     displayAutocompleteResults(newQuery, apiResults);
-                };
-                timer = setTimeout(f, API_TIMEOUT);
+                }, API_TIMEOUT);
             }
         }
 
