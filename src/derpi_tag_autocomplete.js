@@ -1,4 +1,4 @@
-(async () => {
+(() => {
     'use strict';
 
     // set browser to chrome if not in firefox
