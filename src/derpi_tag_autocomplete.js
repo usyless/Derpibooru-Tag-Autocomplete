@@ -362,6 +362,7 @@
         let request_count_reset_time = 0;
 
         const makeRequest = async (query, page, controller) => {
+            console.log(`Making API Request for "${query}" with page ${page}`);
             const r = await fetch(
                 `https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
                 {method: "GET", signal: controller.signal}
@@ -372,11 +373,14 @@
 
                 if ((r.status === 501 && (r.headers.get("Content-Type") === 'text/html'))) {
                     // 5 second rate limit
-                    await extension.storage.local.set({[rate_limit_key]: Date.now() + 6000});
+                    await extension.storage.local.set({[rate_limit_key]: Date.now() + (6 * 1000)});
                     return apifetchfunc(query, page, controller);
                 } else if (r.status === 500 && ((await r.text()).length <= 0)) {
                     // 15 minute rate limit
                     await extension.storage.local.set({[rate_limit_key]: Date.now() + (16 * 60 * 1000)});
+                    return apifetchfunc(query, page, controller);
+                } else if (r.status === 429) {
+                    await extension.storage.local.set({[rate_limit_key]: Date.now() + (1000)});
                     return apifetchfunc(query, page, controller);
                 }
 
@@ -390,12 +394,11 @@
             const currentTime = Date.now();
 
             if (currentTime > request_count_reset_time) {
-                request_count_reset_time = currentTime + 10000;
+                request_count_reset_time = currentTime + (10 * 1000);
                 request_count = 0;
             }
 
             query = fixApiFetchQuery(query);
-            console.log(`Making API Request for "${query}" with page ${page}`);
 
             let limitedUntil = (await extension.storage.local.get(rate_limit_key))[rate_limit_key] ?? 0;
             if (typeof limitedUntil !== 'number' || limitedUntil > (currentTime + (17 * 60 * 1000))) {
