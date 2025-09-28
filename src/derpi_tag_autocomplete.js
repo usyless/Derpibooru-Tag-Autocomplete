@@ -7,7 +7,7 @@
         return chrome;
     })();
 
-    const scrollEvent = new Event('scroll'), API_TIMEOUT = 200;
+    const scrollEvent = new Event('scroll'), API_TIMEOUT = 350;
     let fetchfunc, cleanQuery, apifetchfunc;
 
     const literal_property = 0;
@@ -209,8 +209,7 @@
                     displayAutocompleteResults(newQuery, apiResults);
                     lastApiCall = performance.now();
                 };
-                if ((performance.now() - lastApiCall) > API_TIMEOUT) void f();
-                else timer = setTimeout(f, API_TIMEOUT);
+                timer = setTimeout(f, API_TIMEOUT);
             }
         }
 
