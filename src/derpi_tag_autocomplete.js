@@ -273,25 +273,26 @@
                     if (receivedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) getResults(false);
                 }, {signal: controller.signal});
             }
-            { // input stuff
-                ac_list.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-
-                    const selected = e.target.closest("li");
-                    if (selected) {
-                        const {parts, splitters, i, ignoredPrefix, uncleaned, lengthCounter} = JSON.parse(ac_list.dataset.query);
-                        parts[i] = parts[i].replace(uncleaned, selected.dataset.name);
-                        input.value = "";
-                        for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
-                        input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
-
-                        input.focus();
-                        closeList();
-                    }
-                });
-            }
         }
+
+        ac_list.parentElement.addEventListener('click', (e) => {
+            if (e.target.closest(".ac-list:not(.hidden)")) {
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                const selected = e.target.closest("li");
+                if (selected) {
+                    const {parts, splitters, i, ignoredPrefix, uncleaned, lengthCounter} = JSON.parse(ac_list.dataset.query);
+                    parts[i] = parts[i].replace(uncleaned, selected.dataset.name);
+                    input.value = "";
+                    for (let i = 0; i < parts.length; ++i) input.value += parts[i] + (splitters?.[i] ?? '');
+                    input.setSelectionRange(lengthCounter + parts[i].length, lengthCounter + parts[i].length);
+
+                    input.focus();
+                    closeList();
+                }
+            }
+        });
     }
 
     cleanQuery = (() => {
