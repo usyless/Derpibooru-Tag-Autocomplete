@@ -7,7 +7,7 @@
         return chrome;
     })();
 
-    const scrollEvent = new Event('scroll'), API_TIMEOUT = 350;
+    const scrollEvent = new Event('scroll'), API_TIMEOUT = 450;
     let fetchfunc, cleanQuery, apifetchfunc;
 
     const literal_property = 0;
