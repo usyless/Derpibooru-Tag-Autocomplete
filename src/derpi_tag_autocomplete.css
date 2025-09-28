@@ -9,6 +9,8 @@
     position: absolute;
     overflow-x: clip;
     overflow-y: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: lightgray transparent;
     scroll-behavior: smooth;
     border-bottom: none;
     z-index: 99;
