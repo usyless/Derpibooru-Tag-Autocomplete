@@ -129,6 +129,11 @@
                             continue;
                         }
 
+                        // Only add the property without modifier if user haven't typed it yet.
+                        if (!hasStartedTypingModifier) {
+                            specials.push({aliased_tag: null, name: `${special}:${currValuePart}`, images: -1})
+                        }
+
                         if (type === ranged_property) {
                             for (const modifier of range_modifiers) {
                                 // Display all if modifier isn't typed yet or match the modifier to the one user have typed.
@@ -136,12 +141,7 @@
 
                                 specials.push({aliased_tag: null,name: `${special}${modifier}:${currValuePart}`,images: -1});
                             }
-
-                            // Do not display property without modifier, since there is no point.
-                            if (hasStartedTypingModifier) continue;
                         }
-
-                        specials.push({aliased_tag: null, name: `${special}:${currValuePart}`, images: -1});
                     }
                 }
             } else ++page;
