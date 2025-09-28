@@ -56,8 +56,16 @@
     }
 
     const autocomplete = (input, ac_list) => {
-        let receivedPage = true, localOver = false, currentQuery, controller = new AbortController(),
-            lastApiCall = 0, timer, items = 0, page = 1, firstAPI = false;
+        let receivedPage = true,
+            localOver = false,
+            currentQuery,
+            specialMatch = false,
+            controller = new AbortController(),
+            lastApiCall = 0,
+            timer,
+            items = 0,
+            page = 1,
+            firstAPI = false;
 
         const createListItem = (() => {
             const list = document.createElement('li'), outer_div = document.createElement('div'),
@@ -108,9 +116,12 @@
 
         async function getResults(newQuery) {
             receivedPage = false;
-            const curr = currentQuery.current, specials = [];
+            const curr = currentQuery.current;
+            const specials = [];
+
             if (newQuery) {
                 localOver = false;
+                specialMatch = false;
                 page = 1;
                 items = 0;
                 if (Settings.preferences.special_searches) {
@@ -143,8 +154,11 @@
                             }
                         }
                     }
+
+                    specialMatch = (specials.length > 0) && curr.includes(':');
                 }
             } else ++page;
+
             if (!localOver) {
                 const localResults = await fetchfunc(curr, page, controller);
                 items += localResults.length;
@@ -156,7 +170,7 @@
                     page = Math.floor(items / 25); // no + 1 as it's handled by the above else case
                 }
                 displayAutocompleteResults(newQuery, specials.concat(localResults));
-            } else if (!Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
+            } else if (!specialMatch && !Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
                 clearTimeout(timer);
                 const f = async () => {
                     let apiResults = await apifetchfunc(curr, page, controller);
