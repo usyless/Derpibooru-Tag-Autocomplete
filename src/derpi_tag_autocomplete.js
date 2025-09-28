@@ -350,11 +350,11 @@
         });
     });
 
-    const /** @type {(string) => string} */ fixApiFetchQuery = (q) =>
-        q.replaceAll('(', '\\(')
-        .replaceAll(')', '\\)');
-
     apifetchfunc = (() => {
+        const /** @type {(string) => string} */ fixApiFetchQuery = (q) =>
+            q.replaceAll('(', '\\(')
+            .replaceAll(')', '\\)');
+
         const rate_limit_key = 'api_rate_limited_until';
 
         const makeRequest = async (query, page, controller) => {
