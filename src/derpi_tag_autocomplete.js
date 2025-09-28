@@ -354,13 +354,54 @@
         q.replaceAll('(', '\\(')
         .replaceAll(')', '\\)');
 
-    apifetchfunc = async (query, page, controller) => {
-        query = fixApiFetchQuery(query);
-        console.log(`Making API Request for "${query}" with page ${page}`);
+    apifetchfunc = (() => {
+        const rate_limit_key = 'api_rate_limited_until';
 
-        return (await (await fetch(`https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
-            {method: "GET", signal: controller.signal})).json())['tags'];
-    }
+        const makeRequest = async (query, page, controller) => {
+            const r = await fetch(
+                `https://derpibooru.org/api/v1/json/search/tags?q=${Settings.preferences.match_start ? '' : '*'}${encodeURIComponent(query)}*&page=${page}`,
+                {method: "GET", signal: controller.signal}
+            );
+
+            if (!r.ok) {
+                console.log(`API Request failed for "${query}"`);
+
+                if ((r.status === 501 && (r.headers.get("Content-Type") === 'text/html'))) {
+                    // 5 second rate limit
+                    await extension.storage.local.set({[rate_limit_key]: Date.now() + 6000});
+                    return apifetchfunc(query, page, controller);
+                } else if (r.status === 500 && ((await r.text()).length <= 0)) {
+                    // 15 minute rate limit
+                    await extension.storage.local.set({[rate_limit_key]: Date.now() + (16 * 60 * 1000)});
+                    return apifetchfunc(query, page, controller);
+                }
+
+                throw new Error(`Response not okay with status: ${r.status}`);
+            }
+
+            return (await r.json()).tags;
+        }
+
+        return async (query, page, controller) => {
+            query = fixApiFetchQuery(query);
+            console.log(`Making API Request for "${query}" with page ${page}`);
+
+            let limitedUntil = (await extension.storage.local.get(rate_limit_key))[rate_limit_key] ?? 0;
+            const currentTime = Date.now();
+            if (typeof limitedUntil !== 'number' || limitedUntil > (currentTime + (17 * 60 * 1000))) {
+                limitedUntil = 0;
+                await extension.storage.local.set({[rate_limit_key]: limitedUntil});
+            }
+
+            if (limitedUntil > currentTime) {
+                // if controller is cancelled then it'll just throw when making a request
+                console.log(`Waiting ${(limitedUntil - currentTime) / 1000}s before making request for "${query}"`);
+                await new Promise(resolve => setTimeout(resolve, limitedUntil - currentTime));
+            }
+
+            return makeRequest(query, page, controller);
+        }
+    })();
 
     const updateListLengths = () => {
         const v = Number(Settings.preferences.results_visible);
