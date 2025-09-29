@@ -240,7 +240,7 @@
             const keyMappings = {
                 'ArrowDown' : () => changeActive(true),
                 'ArrowUp' : () => changeActive(false),
-                'Tab' : () => ac_list.querySelector('.ac-active').click()
+                'Tab' : () => ac_list.querySelector('.ac-active')?.click()
             };
 
             input.addEventListener('keydown', (e) => {
