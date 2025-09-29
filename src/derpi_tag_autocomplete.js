@@ -9,6 +9,7 @@
 
     // 20 requests per 10 seconds -> probably not an ideal solution but it'll work
     const API_TIMEOUT = 500;
+    const API_TIMEOUT_SCROLLING = 100;
 
     const scrollEvent = new Event('scroll');
     let fetchfunc, cleanQuery, apifetchfunc;
@@ -116,7 +117,7 @@
             if (data?.length < 25) ac_list.dispatchEvent(scrollEvent);
         }
 
-        async function getResults(newQuery) {
+        async function getResults(newQuery, scrolling) {
             receivedPage = false;
             const curr = currentQuery.current;
             const specials = [];
@@ -209,7 +210,7 @@
                         }
                     }
                     displayAutocompleteResults(newQuery, apiResults);
-                }, API_TIMEOUT);
+                }, (scrolling ? API_TIMEOUT_SCROLLING : API_TIMEOUT));
             }
         }
 
@@ -272,7 +273,7 @@
                 ac_list.addEventListener('scroll', () => {
                     if (ac_list.scrollTop < lastScrollTop) return;
                     lastScrollTop = ac_list.scrollTop <= 0 ? 0 : ac_list.scrollTop;
-                    if (receivedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) void getResults(false);
+                    if (receivedPage && ac_list.scrollTop + ac_list.offsetHeight >= ac_list.scrollHeight - 432) void getResults(false, true);
                 }, {signal: controller.signal});
             }
         }
