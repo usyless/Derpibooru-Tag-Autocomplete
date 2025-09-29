@@ -96,8 +96,7 @@
             timer,
             items = 0,
             page = 1,
-            firstAPI = false,
-            isRepeating = false;
+            firstAPI = false;
 
         function displayAutocompleteResults(newQuery, data) {
             if (newQuery) {
@@ -174,7 +173,7 @@
                     page = Math.floor(items / 25); // no + 1 as it's handled by the above else case
                 }
                 displayAutocompleteResults(newQuery, specials.concat(localResults));
-            } else if (!isRepeating && !specialMatch && !Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
+            } else if (!specialMatch && !Settings.preferences.local_autocomplete_enabled && Settings.preferences.api_fallback) {
                 clearTimeout(timer);
                 timer = setTimeout(async () => {
                     let apiResults = await apifetchfunc(curr, page, controller);
@@ -217,7 +216,6 @@
 
         input.addEventListener('focus', () =>
             extension.runtime.sendMessage({type: 'local_autocomplete_load', local: Settings.preferences.local_autocomplete_enabled}));
-        input.addEventListener('keydown', ({repeat}) => isRepeating = repeat);
         input.addEventListener('input', newSearch);
         input.addEventListener('pointerup', newSearch);
 
