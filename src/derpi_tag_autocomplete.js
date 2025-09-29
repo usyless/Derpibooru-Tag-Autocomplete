@@ -59,6 +59,34 @@
         },
     }
 
+    const createListItem = (() => {
+        const list = document.createElement('li'), outer_div = document.createElement('div'),
+            text_div = document.createElement('div'), number_div = document.createElement('div');
+        text_div.classList.add('text-div');
+        number_div.classList.add('number-div');
+        outer_div.append(text_div, number_div);
+        list.appendChild(outer_div);
+
+        return (query, aliased_tag, name, count) => {
+            number_div.textContent = simplifyNumber(count);
+            const newList = list.cloneNode(true),
+                new_text_div = newList.firstChild.firstChild,
+                strong = document.createElement('strong'), match = name.match(query);
+            if (match) {
+                const index = match.index, endIndex = index + match[0].length;
+                strong.textContent = name.substring(index, endIndex);
+                new_text_div.append(document.createTextNode(name.substring(0, index)), strong, document.createTextNode(name.substring(endIndex)));
+            }
+            else new_text_div.appendChild(document.createTextNode(name));
+            if (aliased_tag) {
+                // .replaceAll('-colon-', ':').replaceAll('+', ' '), will cause issues however
+                new_text_div.appendChild(document.createTextNode(` → ${aliased_tag}`));
+                newList.dataset.name = aliased_tag;
+            } else newList.dataset.name = name;
+            return newList;
+        }
+    })();
+
     const autocomplete = (input, ac_list) => {
         let receivedPage = true,
             localOver = false,
@@ -69,34 +97,6 @@
             items = 0,
             page = 1,
             firstAPI = false;
-
-        const createListItem = (() => {
-            const list = document.createElement('li'), outer_div = document.createElement('div'),
-                text_div = document.createElement('div'), number_div = document.createElement('div');
-            text_div.classList.add('text-div');
-            number_div.classList.add('number-div');
-            outer_div.append(text_div, number_div);
-            list.appendChild(outer_div);
-
-            return (query, aliased_tag, name, count) => {
-                number_div.textContent = simplifyNumber(count);
-                const newList = list.cloneNode(true),
-                    new_text_div = newList.firstChild.firstChild,
-                    strong = document.createElement('strong'), match = name.match(query);
-                if (match) {
-                    const index = match.index, endIndex = index + match[0].length;
-                    strong.textContent = name.substring(index, endIndex);
-                    new_text_div.append(document.createTextNode(name.substring(0, index)), strong, document.createTextNode(name.substring(endIndex)));
-                }
-                else new_text_div.appendChild(document.createTextNode(name));
-                if (aliased_tag) {
-                    // .replaceAll('-colon-', ':').replaceAll('+', ' '), will cause issues however
-                    new_text_div.appendChild(document.createTextNode(` → ${aliased_tag}`));
-                    newList.dataset.name = aliased_tag;
-                } else newList.dataset.name = name;
-                return newList;
-            }
-        })();
 
         function displayAutocompleteResults(newQuery, data) {
             if (newQuery) {
