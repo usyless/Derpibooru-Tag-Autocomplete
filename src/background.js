@@ -237,7 +237,8 @@ async function getDerpiCompiledTags() {
             void derpi_autocomplete_set(tags, key);
             return tags;
         }
-    } catch {
+    } catch (e) {
+        console.error("Error getting derpi compiled tags: ", e);
         return [];
     }
 }
