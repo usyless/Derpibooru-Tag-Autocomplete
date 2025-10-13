@@ -22,10 +22,12 @@ An alternative tag autocompletion for derpibooru.org, using either a combination
 - Enabling this disables all api calls
 
 ## Install
-### Firefox Desktop/Mobile (or Fennec)
-- Install extension through the [Mozilla addons page ](https://addons.mozilla.org/en-GB/firefox/addon/derpibooru-tag-autocomplete/)
-### Chrome or other chromium based browsers
-- Install extension through the [Chrome web store](https://chromewebstore.google.com/detail/derpibooru-tag-autocomple/fhfmeekjjdpnnelbddcfmcgmadcgfefl)
+
+<a href="https://addons.mozilla.org/en-GB/firefox/addon/derpibooru-tag-autocomplete/"><img src="https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/3rdparty/firefox-addons.webp?raw=true" alt="Firefox Addons Link"></a>
+
+
+<a href="https://chromewebstore.google.com/detail/derpibooru-tag-autocomple/fhfmeekjjdpnnelbddcfmcgmadcgfefl"><img src="https://github.com/usyless/Derpibooru-Tag-Autocomplete/blob/main/assets/3rdparty/chrome-web-store.png?raw=true" alt="Chrome Web Store Link"></a>
+
 
 ## Extension Images
 ### Desktop
