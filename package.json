@@ -1,0 +1,34 @@
+{
+  "name": "derpibooru-tag-autocomplete",
+  "version": "1.4.1",
+  "description": "An alternative tag autocompletion for derpibooru.org, using either a combination of local autocomplete and its API, or with a fully local autocomplete",
+  "homepage": "https://github.com/usyless/Derpibooru-Tag-Autocomplete#readme",
+  "bugs": {
+    "url": "https://github.com/usyless/Derpibooru-Tag-Autocomplete/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usyless/Derpibooru-Tag-Autocomplete.git"
+  },
+  "license": "GPL-3.0",
+  "author": "usy",
+  "type": "module",
+  "scripts": {
+    "build": "usy-extension-builder-build",
+    "swap-manifests": "usy-extension-builder-swap-manifests"
+  },
+  "devDependencies": {
+    "@types/firefox-webext-browser": "^143.0.0",
+    "usy-extension-builder": "github:/usyless/usy-extension-builder.git#main"
+  },
+  "extensionManifestConfig": {
+    "firefox": {
+      "replaceAll": [
+        {
+          "from": "derpibooru-tag-autocomplete@usyless.uk",
+          "to": "{9d7b22c8-2c2e-49e7-b66c-4eeb23cf8d27}"
+        }
+      ]
+    }
+  }
+}

@@ -2,3 +2,5 @@
 /.vscode
 /releases
 *.csv
+/node_modules
+/package-lock.json
