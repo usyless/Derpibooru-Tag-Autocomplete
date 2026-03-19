@@ -29,10 +29,8 @@ extension.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 extension.runtime?.onInstalled?.addListener?.((details) => {
-    updateLocalAutocompleteDB().then(() => {
-        if (details.reason === 'install') void extension.tabs.create({url: extension.runtime.getURL('/settings/settings.html?installed=true')});
-        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
-    });
+    if (details.reason === 'install') void extension.tabs.create({url: extension.runtime.getURL('/settings/settings.html?installed=true')});
+    else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
 });
 
 // migrating to new settings format
@@ -75,10 +73,17 @@ async function migrateSettings(previousVersion) {
 }
 
 const LOCAL_AUTOCOMPLETE_DB_VERSION = 3;
-function updateLocalAutocompleteDB() {
-    return new Promise((resolve) => {
-        const db = indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION);
-        db.addEventListener('upgradeneeded', (event) => {
+
+function internalGetAutocompleteDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION);
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => {
+            const error = e.target.error;
+            console.error("Error opening autocomplete database: ", error);
+            reject(error);
+        };
+        request.onupgradeneeded = (event) => {
             const db = event.target.result;
             const transaction = event.target.transaction;
 
@@ -96,31 +101,19 @@ function updateLocalAutocompleteDB() {
                 const objectStore = transaction.objectStore('data');
                 objectStore.put({id: "3", data: ""}); // local derpi tags last date
             }
-        });
-        db.addEventListener('success', resolve);
-    });
+        }
+    })
 }
 
-let local_autocomplete_db;
-let db_opening = false;
-const pending_db_promises = [];
+let local_autocomplete_db_promise;
 function getAutocompleteDB() {
-    return new Promise((resolve) => {
-        if (local_autocomplete_db != null) resolve(local_autocomplete_db);
-        else if (db_opening) pending_db_promises.push(resolve);
-        else {
-            db_opening = true;
-            indexedDB.open('local_autocomplete', LOCAL_AUTOCOMPLETE_DB_VERSION)
-                .addEventListener('success', (e) => {
-                    local_autocomplete_db = e.target.result;
-                    db_opening = false;
-                    resolve(local_autocomplete_db);
-
-                    for (const promise of pending_db_promises) promise(local_autocomplete_db);
-                    pending_db_promises.length = 0;
-                });
-        }
-    });
+    if (!local_autocomplete_db_promise) {
+        local_autocomplete_db_promise = internalGetAutocompleteDB().catch((err) => {
+            local_autocomplete_db_promise = null;
+            throw err;
+        });
+    }
+    return local_autocomplete_db_promise;
 }
 
 function get_from_db(id) {
@@ -142,7 +135,7 @@ function set_to_db(id, data) {
 }
 
 function local_autocomplete_set(request, sendResponse) {
-    set_to_db("1", parseCSV(request.data)).then(() => {
+    return set_to_db("1", parseCSV(request.data)).then(() => {
         sendResponse?.(true);
         reload_autocomplete();
     });
