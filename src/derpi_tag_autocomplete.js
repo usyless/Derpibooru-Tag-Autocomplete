@@ -111,7 +111,7 @@
                 for (const {aliased_tag, name, images} of data) ac_list.appendChild(createListItem(curr, aliased_tag, name, images));
                 if (!ac_list.querySelector('.ac-active')) {
                     ac_list.firstElementChild.classList.add('ac-active');
-                    newQuery && ac_list.firstElementChild.scrollIntoView({behavior: 'instant', block: 'center'});
+                    if (newQuery) ac_list.scrollTo({top: 0, left: 0, behavior: 'instant' });
                 }
             }
             if (data?.length < 25) ac_list.dispatchEvent(scrollEvent);
@@ -256,7 +256,11 @@
                 const newItem = down ? oldItem.nextElementSibling ?? ac_list.firstElementChild
                     : oldItem.previousElementSibling ?? ac_list.lastElementChild;
                 newItem.classList.add('ac-active');
-                newItem.scrollIntoView({block: 'center'});
+                ac_list.scrollTo({
+                    top: (newItem.offsetTop - ac_list.offsetTop) - (ac_list.clientHeight / 2) + (newItem.clientHeight / 2),
+                    left: 0,
+                    behavior: 'smooth'
+                });
             }
         }
 

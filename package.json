@@ -1,6 +1,6 @@
 {
   "name": "derpibooru-tag-autocomplete",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "An alternative tag autocompletion for derpibooru.org, using either a combination of local autocomplete and its API, or with a fully local autocomplete",
   "homepage": "https://github.com/usyless/Derpibooru-Tag-Autocomplete#readme",
   "bugs": {
