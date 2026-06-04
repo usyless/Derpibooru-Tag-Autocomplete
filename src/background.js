@@ -1,7 +1,7 @@
 let chromeMode = false;
 // set browser to chrome if not in firefox
 /** @type {typeof browser} */
-const extension = (Number(browser.runtime.getManifest().manifest_version) === 2) ? browser : (() => {
+const extension = (Number((browser || chrome).runtime.getManifest().manifest_version) === 2) ? browser : (() => {
     chromeMode = true;
     return chrome;
 })();
